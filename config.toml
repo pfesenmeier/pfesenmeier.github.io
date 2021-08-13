@@ -1,5 +1,10 @@
 # The URL the site will be built for
 base_url = "https://pfesenmeier.github.io"
+theme = "anpu"
+taxonomies = [
+    { name = "categories" },
+    { name = "tags" },
+]
 
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
@@ -13,4 +18,6 @@ build_search_index = true
 highlight_code = true
 
 [extra]
-# Put all your custom variables here
+anpu_menu_links = [
+    { url = "$BASE_URL/about/", name = "About" },
+]
