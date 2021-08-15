@@ -5,6 +5,7 @@ taxonomies = [
     { name = "categories" },
     { name = "tags" },
 ]
+ignored_content = ["*.txt"]
 
 # Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
