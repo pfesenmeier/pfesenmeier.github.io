@@ -1,9 +1,12 @@
 # The URL the site will be built for
 base_url = "https://pfesenmeier.github.io"
+title = "Paul Fesenmeier"
+description = "Paul Fesenmeier's personal blog"
 theme = "anpu"
+
 taxonomies = [
-    { name = "categories" },
-    { name = "tags" },
+    { name = "categories", rss = true },
+    { name = "tags", rss = true },
 ]
 ignored_content = ["*.txt"]
 
@@ -11,7 +14,8 @@ ignored_content = ["*.txt"]
 compile_sass = true
 
 # Whether to build a search index to be used later on by a JavaScript library
-build_search_index = true
+build_search_index = false
+generate_feed = true
 
 [markdown]
 # Whether to do syntax highlighting
@@ -19,6 +23,8 @@ build_search_index = true
 highlight_code = true
 
 [extra]
+anpu_date_format="%e %B %Y"
 anpu_menu_links = [
     { url = "$BASE_URL/about/", name = "About" },
+    { url = "$BASE_URL/tags/", name = "Tags" },
 ]

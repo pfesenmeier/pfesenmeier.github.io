@@ -14,3 +14,4 @@ first step: print out all history for given day
 - print out all chrome history
 - filter for just today
 - print out both today, just in chronological order
+furthur goal: have a curated selection of bash / browser commands, rendered nicely, and reads nicely
