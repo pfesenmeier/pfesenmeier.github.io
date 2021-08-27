@@ -1,0 +1,50 @@
++++
+draft = 'true'
+date = '8/27/21'
++++
+
+# Company Project Vs Personal Project Goals
+
+## Common goals
+
+- Getting things done
+- Improving developer experience
+- Automation
+- Leveraging the code repository tools
+- Clean code
+- bash / linux
+- types
+- working with others
+- working on long-running projects
+- shipping, packaging
+- library development
+- CLI tools
+- Web Servers
+
+## Company - Project only goals - things I like
+
+- Cloud Apps, Serverless
+- Infrastructure as Code
+- Architecture
+- Relational Data
+- Docker
+- Authorization, Authentication
+
+## Company Projects goals I don't empathize with
+
+- Ops
+- Building systems in dynamic languages
+- Maintaining and Updating old code
+
+## Personal Project goals
+
+- Embedded Programming
+- Understanding memory usage
+- Rust-specific capabilities
+- IoT
+- Wires, Buttons, Sensors, Bluetooth, Serial, i2c
+- TinyML
+- Raspberry PI
+- Rust web servers
+- Displays
+
