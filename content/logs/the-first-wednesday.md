@@ -1,7 +1,7 @@
 +++
 title = "The First Wednesday"
 description = ""
-date = 2021-08-31
+date = 2021-09-01
 draft = true
 [taxonomies]
 categories = ["logs"]
