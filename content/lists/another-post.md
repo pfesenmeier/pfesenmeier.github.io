@@ -1,6 +1,7 @@
 +++
 title = "Another post"
 date = 2020-06-06
+draft = true
 
 [taxonomies]
 tags = ["other"]

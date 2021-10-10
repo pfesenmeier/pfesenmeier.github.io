@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
+    <title>Hack-a-thon and embedded-hal</title>
+    <meta name="description" content="Paul Fesenmeier&#x27;s personal blog">
+
+    <link rel="stylesheet" href="https://pfesenmeier.github.io/main.css">
+
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="https://pfesenmeier.github.io/atom.xml">
+    
+
+    
+    
+</head>
+<body>
+    <a class="skip-main" href="#main">Skip to content</a>
+    <div class="container">
+        <header> 
+            <h1 class="site-header">
+                <a href="https:&#x2F;&#x2F;pfesenmeier.github.io">Paul Fesenmeier</a>
+            </h1>
+            <nav>
+                
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;about">About</a>
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;tags">Tags</a>
+                
+                
+            </nav>
+        </header>
+        <main id="main" tabindex="-1">
+            
+
+<article class="post">
+    <header>
+        <h1>Hack-a-thon and embedded-hal</h1>
+    </header>
+    <div class="content">
+        <p>Several months ago, a couple SEP collegues and I started a study group around <a href="https://docs.rust-embedded.org/discovery/">The Discovery Book</a>, an introduction to embedded development in Rust. It's an excellent resource, especially for someone like me without any experience with low-level concepts. So when hack-a-thon came around, I felt poised to answer something that had been in the back of my mind: what would happen if I stepped outside of our book and tried something on my own?</p>
+<p>Last year, I had built a thermostat to turn a mini-fridge into a fermentation chamber. The thermostat was built out of a Raspberry Pi, a Meros Smart Outlet, and a SHT31D temperature and humidity sensor from Adafruit. The software was from the (then Mozilla) Webthings Framework. It was fun and it worked pretty well! But I felt provisioning a tiny Linux box for a thermostat seemed a bit overkill. Enter: the STM32FDISCOVERY.</p>
+<p>The important thing to know about programmingthe STM32DISCOVERY is that we're running on bear metal.</p>
+<p>So, like before in the Raspberry Pi, developing on the STM32DISCOVERY was made possible by the work of the book authors. Already I was given a project setup that takes care of the details of setting up the ability to flash programs onto the board, debug using the on-chip debugging, and capture log and error messages on my development machine.</p>
+<p>My goal for the weekend was to hook up and read from the SHT31D.First, I wanted to see a running example of the board reading from an I2C interface, the communication protocol that my sensor happened to implement. Luckily, the Discovery Book had an example of reading its on board Magnometer through I2c. After a few tweaks to get the example working for my newer revision of the board, I got some readings.</p>
+<p>Second goal: read from my colleague's Bosh BME280. Luckily, this was done by pulling down the crate. However, there was an issue: the original implementer had the factory function for the sensor object take a delay object. This meant I could no longer use the delay object (to say, pause between readings). I was perplexed, and I saw a pull request to solve the issue that had not been merged in a year. Luckily, cargo provides an easy way to bring in the code of this PR straight from Github. </p>
+<p>Third goal: Use the SHT31D. Straightforward. I may have gotten some problems because my wire had a stubby connector end that did not fit in the bread board. After accidentily breaking the end, I stipped the wire and added a proper connecter from a wire. Once it panicked because the connection was not good. Just pushing it in a little made the program run.</p>
+<p>On Sunday, having accomplished my goal twice over, and with not much time left, I decided to answer a question that seemed solvable with my remaining time: could I read from both sensors from at the same time?</p>
+<p>Reading about I2c buses, hardware-wise, this seemed totally doable. Would the embedded-rust ecosystem allow it?</p>
+<p>At first glance: no. Bringing in both sensors in a program, both required the i2c bus object. Only one could have it, else I get the error: ''. </p>
+<p>Luckily spotted in a github thread: the shared-bus crate. This one could manage the sharing of the bus.</p>
+<p>That was my weekend! Had a blast, looking forward to the next one.</p>
+
+    </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-date">16 August 2021</div>
+        
+        <div class="article-taxonomies">
+            
+            
+                <ul class="article-tags">
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/rust/">#Rust</a></li>
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/embedded/">#Embedded</a></li>
+                    
+                </ul>
+            
+        </div>
+    </div>
+
+</article>
+
+
+        </main>
+        <footer>
+            <p>
+                © Paul Fesenmeier 2021<br>
+                Powered by <a target="_blank" href="https://getzola.org/">Zola</a>, Theme <a target="_blank" href="https://github.com/zbrox/anpu-zola-theme">Anpu</a>.
+            </p>
+            <p>
+                
+                
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
