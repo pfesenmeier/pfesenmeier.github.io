@@ -1,3 +1,10 @@
++++
+title = "Hack-a-thon and embedded-hal"
+date = 2021-08-16
+
+[taxonomies]
+tags = ["Rust", "Embedded"]
++++
 This spring, A couple colleagues and I began to work through [The Discovery Book](https://docs.rust-embedded.org/discovery/), an introduction to embedded development in Rust. A few months into the book, I attended the summer hackathon to use the lessons and code from the book to create a thermometer.
 
 Last year, I had built a thermostat to turn a mini-fridge into a fermentation chamber. The thermostat ran on a Raspberry Pi, which connected to a Meros Smart Outlet and a SHT31D temperature and humidity sensor from Adafruit. The software was from the (then Mozilla) Webthings Framework. 
