@@ -1,0 +1,7 @@
+[x] Raspberry Pi setup
+[x] STM32F3
+[x] Magnometer readings
+[ ] delay object consumption error
+[ ] cargo.toml import off branch picture
+[ ] final project picture
+[ ] shared bus snippet
