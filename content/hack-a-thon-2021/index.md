@@ -1,5 +1,5 @@
 +++
-title = "Hack-a-thon and embedded Rust"
+title = "Hack-a-thon and Embedded Rust"
 date = 2021-08-16
 
 [taxonomies]
