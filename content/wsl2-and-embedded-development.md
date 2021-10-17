@@ -45,20 +45,24 @@ rustup toolchain add nightly
 rustup update
 rustup defaulty nightly
 
-// dependency to cross-compile Windows
-sudo apt install mingw-w64
-// add Windows target
-rustup target add x86_64-pc-windows-gnu
+// install build tools
 cargo install ldproxy
-cargo install espflash --target x86_64-pc-windows-gnu
-cargo install espmonitor --target x86_64-pc-windows-gnu // if needed
-cargo pio works?
 
-cargo-pio.exe installpio
+// download and cross-compile flashing and monitoring tools
+sudo apt install mingw-w64
+rustup target add x86_64-pc-windows-gnu
+cargo install espflash --target x86_64-pc-windows-gnu
+
+// faster monitor
+cargo install espmonitor --target x86_64-pc-windows-gnu
+// monitors and can decode stack trace
+cargo install cargo-pio --target x86_64-pc-windows-gnu
 ```
 
 Then a common dev run would look like
-// flash
+// build and flash
+cargo build && espflash.exe COM6 target/riscv32imc-esp-espidf/debug/rust-esp32-std-hello
 // monitor board
+cargo-pio.exe espidf monitor COM6 // or espmonitor.exe COM6
 ```
 
