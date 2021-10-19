@@ -7,7 +7,7 @@ draft = false
 tags = ["Rust", "Embedded"]
 +++
 
-WSL2 and embedded development seem incompatible. A microcontroller plugged into a Windows USB port is [only visible to the host Windows machine](https://github.com/microsoft/WSL/issues/5158). However, it is possible to flash and debug a microcontroller right from the Linux terminal.
+The Windows Subsystem for Linux 2 (WSL2) and embedded development seem incompatible. A microcontroller plugged into a Windows USB port is [only visible to the host Windows machine](https://github.com/microsoft/WSL/issues/5158). However, it is possible to flash and debug a microcontroller right from the Linux terminal.
 
 The trick is to have the tools that need access to the USB port installed as Windows binaries. Windows binaries invoked from the WSL terminal are [run as if](https://docs.microsoft.com/en-us/windows/wsl/filesystems#run-windows-tools-from-linux) in a Windows CMD prompt. Here are two examples:
 
