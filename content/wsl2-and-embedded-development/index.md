@@ -37,7 +37,7 @@ The project outlined in the [Discovery Book](https://docs.rust-embedded.org/disc
 
 The option "bindto 0.0.0.0" tells the gdb server to accept connections from other (virtual) machines. The line 'target remote 172.21.159.1:3333' in openocd.gdb tells the Linux gdb client where to find the gdb server running on Windows.
 
-Important to note that the Windows IP address is not static. My solution is to run a command like this from my .bash_profile:
+Important to note that the Windows IP address is not static. My solution is to run a command like this from my .bashrc:
 
 ```
 #!/bin/bash
