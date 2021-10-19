@@ -35,7 +35,7 @@ The project outlined in the [Discovery Book](https://docs.rust-embedded.org/disc
 ```
 `openocd.exe` runs as if from Windows, and finds the board on the USB port. `cargo` builds the project, then the gdb client in Linux opens a remote debugging session with the gdb server running on the Windows side. In order for logging to work, the `itmdump` and `openocd.exe` commands must be run in same directory. It turns out that this still works even now one is a Windows program!
 
-The option "bindto 0.0.0.0" tells the gdb server to accept connections from other (virtual) machines. The line 'target remote 172.21.159.1:3333' in openocd.gdb tells the Linux gdb client where to find the gdb server running on Windows.
+The option "bindto 0.0.0.0" tells the gdb server to accept connections from other (virtual) machines. The line "target remote 172.21.159.1:3333" in openocd.gdb tells the Linux gdb client where to find the gdb server running on Windows.
 
 Important to note that the Windows IP address is not static. My solution is to run a command like this from my .bashrc:
 
@@ -53,7 +53,7 @@ find "${project_location}/src" -name openocd.gdb -exec sed -Ei "s/^target remote
 
 ## ESP32C3
 
-ivmarkov's [rust-esp32-std-hello](https://github.com/ivmarkov/rust-esp32-std-hello) has a straighforward setup to develop a part c / part Rust project on the esp32 series of boards. All tools are from crate.io. All WSL users have to do differently to setup a development environment is cross-compile the flashing and monitoring tools:
+ivmarkov's [rust-esp32-std-hello](https://github.com/ivmarkov/rust-esp32-std-hello) has a straighforward setup to develop a part C / part Rust project on the esp32 series of boards. All tools are available from crates.io. All WSL users have to do differently to setup a development environment is cross-compile the flashing and monitoring tools:
 
 ```
 // use latest nightly toolchain
