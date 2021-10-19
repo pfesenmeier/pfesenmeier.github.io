@@ -5,7 +5,7 @@ date = 2021-08-16
 [taxonomies]
 tags = ["Rust", "Embedded"]
 +++
-This spring, A couple colleagues and I began to work through [The Discovery Book](https://docs.rust-embedded.org/discovery/), an introduction to embedded development in Rust. A few months into the book, I attended the summer hackathon to use the lessons and code from the book to create a thermometer.
+This spring, A couple colleagues and I began to work through [The Discovery Book](https://docs.rust-embedded.org/discovery/), an introduction to embedded development in Rust. A few months into the book, I attended the SEP summer hackathon to use the lessons and code from the book to create a thermometer.
 
 Last year, I had built a thermostat to turn a mini-fridge into a fermentation chamber. The thermostat ran on a Raspberry Pi, which connected to a Meros Smart Outlet and a SHT31D temperature and humidity sensor from Adafruit. The software was from the (then Mozilla) Webthings Framework. 
 
@@ -15,11 +15,11 @@ It was fun and it worked pretty well! But I felt provisioning a tiny Linux box f
 
 {{ resize_image(path="content/hack-a-thon-2021/first-sensor.jpeg", width=0,height=300, op="fit_height") }}
 
-My STM32DISCOVERY programs are running on bare metal: no operating system or filesystem. The Discovery authors provided a way to flash the program onto the board, debug the program as it runs on board, and capture log and error messages.
+My STM32DISCOVERY programs are running on bare metal: no operating system, files, Wifi, etc.. The Discovery authors provided a way to flash the program onto the board, debug the program as it runs on board, and capture log and error messages.
 
 My goal for the weekend was to hook up and read from the SHT31D sensor. I split up the work in incremental steps.
 
-First, I wanted to see my board communicate over I2C, the protocol the SHT31D uses. The easiest way was to run the Discovery Book's example that read from the STM32's on-board magnetometer. After a few tweaks to get the example working for my newer revision of the board, I got some readings:
+First, I wanted to see my board communicate over I2C, the protocol the temperature sensors use. The easiest way was to get the board to read off of its on-board magnetometer. After a few tweaks to the Discovery book's example for my newer revision of the board, I got some readings:
 
 {{ resize_image(path="content/hack-a-thon-2021/magnometer.jpeg", width=0,height=300, op="fit_height") }}
 
@@ -35,9 +35,9 @@ Third step: Use the SHT31D. This was straightforward, save for some minor wire r
 
 Having accomplished my goal on Saturday, I decided to answer a question that seemed solvable with my remaining time: can the board read from both sensors at the same time?
 
-Adafruit explains I2C buses have one master and one to many slaves existing on the same line.  Would the embedded-rust ecosystem allow it? At first glance: no. 
+[Adafruit explains](https://learn.adafruit.com/i2c-addresses#i2c-inter-integrated-circuit-communications-2630755-2) I2C buses have one master and one to many slaves existing on the same line.  Would the embedded-rust ecosystem allow it? At first glance: no. 
 
-Bringing in both sensors in a program, both required the i2c bus object. Only one could have it, else I get an error. Luckily spotted in a Github thread: the shared-bus crate. This one could manage the references to the bus:
+Bringing in both sensors in a program, both required the I2C bus object. Only one could have it, else I get an error. Luckily spotted in a Github thread: the shared-bus crate. This one could manage the references to the bus:
 
 {{ resize_image(path="content/hack-a-thon-2021/shared-bus.png", width=0,height=300, op="fit_height") }}
 
