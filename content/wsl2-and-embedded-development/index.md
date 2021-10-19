@@ -1,7 +1,7 @@
 +++
 title = "WSL2 and Embedded Rust"
 date = 2021-10-16
-draft = true
+draft = false
 
 [taxonomies]
 tags = ["Rust", "Embedded"]
@@ -10,6 +10,11 @@ tags = ["Rust", "Embedded"]
 WSL2 and embedded Rust seem incompatible. [WSL2 does not](https://github.com/microsoft/WSL/issues/5158) have access to the host Windows machine's USB ports. In order to flash the binary onto the board, the program needs access to this port.
 
 The trick is to have your flashing and monitoring programs installed as Windows binaries. Windows binaries are [always run as if](https://docs.microsoft.com/en-us/windows/wsl/filesystems#run-windows-tools-from-linux) in a Windows CMD prompt. Windows shells have access to the USB ports. Here are two examples:
+
+{{ resize_image(path="content/wsl2-and-embedded-development/boards.JPEG", width=0,height=300, op="fit_height") }}
+<small style="display: flex; justify-content: center;">
+The STM32F3DISCOVERY and the ESP32c3
+</small>
 
 ## STM32F3DISCOVERY
 
