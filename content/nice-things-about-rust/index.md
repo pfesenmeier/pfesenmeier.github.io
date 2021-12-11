@@ -1,7 +1,10 @@
 +++
-draft = true
+title = "7 Nice Things About Rust"
+date = 2021-12-11
+
+[taxonomies]
+tags = ["Rust"]
 +++
-# 10 Nice Things about Rust
 ## No null
 From this decision flows much of the flavor of Rust. Consider this function signature in typescript:
 
@@ -205,9 +208,29 @@ error[E0502]: cannot borrow `list` as mutable because it is also borrowed as imm
 
 F
 ```
-As long as the iterator itself has a reference to the list, no other refernce can mutate the list. Pretty neat!
+As long as the iterator itself has a reference to the list, no other refernce can mutate the list. Pretty neat! Speaking of pretty neat:
 
+## Documentation
 
+It's not the most beloved feature. It's actually been smeared by the Xtreme Programming Book. But Rust does a lot to remove the traditional pain points.
+
+First, any Rust project can make documentation by running
+`cargo doc --open`
+
+At a mininum, the documentation will have all the function signatures of the public functions, traits, and structs of your modules. It will also have easy links to documntation to all your dependencies. But it will also put any doc-comments (comments with `///` or `//!`) in there. You can even put code snippets. Those code snippets can even automatically be run when you run `cargo test`!
+
+All libraries hosted on crates.io automatically have their documentation hosted on docs.rs. 
+
+## Ecosystem
+
+Finally, Rust already has some create libraries to use:
+extra iterator methods: itertools
+custom cargo commands: i.e., cargo-edit
+parser generators: peg, nom
+
+# Conclusion
+
+Rust's learning curve is indeed steep, but rest assured that once summitted, there are a ton of slick syntax that you've enjoyed from other languages, plus some new ones thrown in too.
 
 
 
