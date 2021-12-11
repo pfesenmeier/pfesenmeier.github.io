@@ -6,6 +6,8 @@ date = 2021-12-11
 [taxonomies]
 tags = ["Rust"]
 +++
+From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and dificult language. Here is my take: After the initial learning phase, Rust is an ergonomic language and a load of fun to work with, despite its requirements of having no garbage collection and to be free of data races and memory errors. Here are 7 things I like about Rust:
+
 ## No null
 From this decision flows much of the flavor of Rust. Consider this function signature in typescript:
 
@@ -49,9 +51,9 @@ enum Option<T> {
 The above example `if let` syntax is nice for when you only care about the `Some` value.  Another is a `match` statement:
 
 ```rust
-let index = match find_index("Hello world".to_string(), 'w') {
-  Some(i) => i,
-  None => -1
+match find_index("Hello world".to_string(), 'w') {
+  Some(i) => println!("Found char at index {}:", i),
+  None => println!("Did not find char")
 };
 ```
 Notice that for match statements, compilation will fail if you don't handle every member of the enum.
@@ -92,7 +94,7 @@ class ReadFromFile
 }
 ```
 
-In VSCode, if you hover over [ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0), you get a nice little description of all the Errors that can be raised if you call this function. But it raises the question if we did not have that documentation, would we know it could throw it all? 
+In VSCode, if you hover over [ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0), you get a nice little description of all the Errors that can be raised if you call this function. But it raises the question if we did not have that documentation, would we know it could throw it all?
 
 Rust leaves no doubt. Rust models recoverable errors in the [Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
 
@@ -158,7 +160,7 @@ error[E0382]: borrow of moved value: `good_twin`
 13 |   println!("Good twin: {:?}", good_twin);
    |                               ^^^^^^^^^ value borrowed here after moved
 ```
-In laymen's terms, what happen was that when evil was given a reference to good_twin's value, `good_twin` can no longer access that object.
+In laymen's terms, what happen was that when evil was given a reference to good_twin's value, `good_twin` can no longer access that object. `good_twin` is no longer valid.
 
 To acheive the same thing we did in Javascript, we would have to declare `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
 
@@ -210,6 +212,80 @@ error[E0502]: cannot borrow `list` as mutable because it is also borrowed as imm
 F
 ```
 As long as the iterator itself has a reference to the list, no other refernce can mutate the list. Pretty neat! Speaking of pretty neat:
+
+## Traits (Interfaces)
+
+Traits are interfaces that allow default implementation (think recent C#). They are used in all the places you would use interfaces: as parameter and return types, as bounds on generic parameters, as super and sub traits of other traits, etc.. Since Rust does not support inheritance for structs, traits do the work of sharing code.
+
+This may be old hat for experienced C# developer, but I'm having a lot of fun using traits to fit in my custom types into the language with traits:
+
+Want to create a custom display type for your type to show users? There is a trait for that:
+```rust
+use std::fmt::{Display, Formatter};
+
+pub struct JabberWocky {
+  face: char,
+  body: char,
+}
+
+impl Display for JabberWocky {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "{}-🫀={}-<", self.face, self.body)
+    }
+}
+
+#[test]
+fn test_jabberwocky_display() {
+    let jb = JabberWocky { face: '👹', body: '🦎'};
+    assert_eq!(format!("{}", jb), "👹-🫀=🦎-<");
+}
+```
+Want to override the plus sign for your type? Trait:
+```rust
+impl Add for JabberWocky {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let heads = self.face + &rhs.face;
+        Self { face: heads, body: self.body }
+    }
+}
+
+#[test]
+fn test_jabberwocky_add() {
+  let harry = JabberWocky { face: '👹'.to_string(), body: '🦎'};
+  let frank = JabberWocky { face: '🦊'.to_string(), body: '🐋'};
+
+  let double_jb = harry + frank;
+
+  assert_eq!(format!("{}", double_jb), "👹🦊-🦎=<");
+}
+```
+Want to create conversions of another type to your type? First try it:
+```rust
+impl From<&str> for JabberWocky { }
+
+#[test]
+fn test_jabberwocky_from_slice() {
+    let hollis: JabberWocky = "👽🫀🦗".into();
+    assert_eq!(format!("{}", hollis), "👽-🦗=<");
+}
+```
+and read the error message:
+```
+error[E0046]: not all trait items implemented, missing: `from`
+  --> src/jabberwocky.rs:24:1
+   |
+24 | impl From<&str> for JabberWocky {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `from` in implementation
+   |
+   = help: implement the missing item: `fn from(_: T) -> Self { todo!() }`
+```
+and then do what it says:
+
+Want to add functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the Itertools::windows function:
+
+Where can you find all this information about traits about the standard library and other libraries? This is all readily accessible thanks to Rust's great story around... 
 
 ## Documentation
 
