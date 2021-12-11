@@ -118,6 +118,98 @@ Speaking of errors, we can avoid a whole class of errors thank to...
 
 The borrow checker gets a bad rap sometimes. Yeah it's essential for writing concurrent code, but is it all so important in my synchronous, single-threaded script? 
 
-To start, it might be nice to have some background: 
+To start, it might be nice to have some background of what the borrow checker is. Simply put, at compile time, the borrow checker makes sure that for every point in your code that there is either one mutable reference or multiple immutable references to every value in your code (if there are zero references, the value is automatically dropped).
+
+Consider this maybe surprising effect of having two mutable references in Typescript:
+
+```typescript
+const goodTwin = { is: "good" };
+const evilTwin = goodTwin;
+evilTwin.is = "evil";
+
+// good or evil???
+console.log("The good twin:", goodTwin);
+```
+
+Even though we declare goodTwin as a constant variable, and do not mutate goodTwin directly, goodTwin becomes evil because we gave a reference to evilTwin, who mutated the object.
+
+If we try this is Rust:
+```rust
+let good_twin =  Twin{ is: "good".to_string() };
+let mut evil = good_twin;
+evil.is = "evil".to_string();
+
+println!("Good twin: {:?}", good_twin);
+```
+We get this build error:
+```
+error[E0382]: borrow of moved value: `good_twin`
+  --> src/twins.rs:13:31
+   |
+9  |   let good_twin =  Twin{ is: "good".to_string() };
+   |       --------- move occurs because `good_twin` has type `Twin`, which does not implement the `Copy` trait
+10 |   let mut evil = good_twin;
+   |                  --------- value moved here
+...
+13 |   println!("Good twin: {:?}", good_twin);
+   |                               ^^^^^^^^^ value borrowed here after moved
+```
+In laymen's terms, what happen was that when evil was given a reference to good_twin's value, `good_twin` can no longer access that object.
+
+To acheive the same thing we did in Javascript, we would have to declare `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
+
+```rust
+let mut good_twin =  Twin{ is: "good".to_string() };
+let evil = &mut good_twin;
+evil.is = "evil".to_string();
+```
+
+Perhaps a better example of the power of the borrow checker is this classic mistake. In Python:
+
+```python
+numbers = [1, 2, 8, 3, 4, 5]
+
+for num in numbers:
+   if num % 2 == 0:
+      numbers.remove(num)
+
+print(numbers)
+```
+We're mutating a list while we iterate over it. If you run the sample, the eight is not removed from the list.
+
+Let's try again in Rust:
+```rust
+let mut list = vec![1, 2, 8, 8, 1];
+
+for (i, num) in list.iter().enumerate() {
+    if num % 2 == 0 {
+        list.remove(i);
+    }
+}
+```
+
+The compilation fails with this error:
+
+```
+error[E0502]: cannot borrow `list` as mutable because it is also borrowed as immutable
+ --> src/abusing_lists.rs:7:13
+  |
+5 |     for (i, num) in list.iter().enumerate() {
+  |                     -----------------------
+  |                     |
+  |                     immutable borrow occurs here
+  |                     immutable borrow later used here
+6 |         if num % 2 == 0 {
+7 |             list.remove(i);
+  |             ^^^^^^^^^^^^^^ mutable borrow occurs here
+
+F
+```
+As long as the iterator itself has a reference to the list, no other refernce can mutate the list. Pretty neat!
+
+
+
+
+
 
 
