@@ -263,28 +263,63 @@ fn test_jabberwocky_add() {
 ```
 Want to create conversions of another type to your type? First try it:
 ```rust
-impl From<&str> for JabberWocky { }
+impl From<(char, char)> for JabberWocky { }
 
 #[test]
-fn test_jabberwocky_from_slice() {
-    let hollis: JabberWocky = "👽🫀🦗".into();
+fn test_jabberwocky_from_tuple() {
+    let hollis: JabberWocky = ('👽','🦗').into();
     assert_eq!(format!("{}", hollis), "👽-🦗=<");
 }
 ```
 and read the error message:
 ```
-error[E0046]: not all trait items implemented, missing: `from`
-  --> src/jabberwocky.rs:24:1
+error[E0277]: the trait bound `JabberWocky: From<(char, char)>` is not satisfied
+  --> src/jabberwocky.rs:27:41
    |
-24 | impl From<&str> for JabberWocky {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `from` in implementation
+27 |     let hollis: JabberWocky = ('👽','🦗').into();
+   |                                           ^^^^ the trait `From<(char, char)>` is not implemented for `JabberWocky`
    |
-   = help: implement the missing item: `fn from(_: T) -> Self { todo!() }`
+   = note: required because of the requirements on the impl of `Into<JabberWocky>` for `(char, char)`
 ```
 and then do what it says:
 
-Want to add functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the Itertools::windows function:
+```rust
+impl From<(char, char)> for JabberWocky {
+    fn from(tuple: (char, char)) -> Self { 
+        Self { face: tuple.0.to_string(), body: tuple.1 }
+    }
+}
+```
 
+Want to add functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the Itertools::tuple_windows function:
+
+```rust
+use itertools::Itertools;
+
+fn main() {
+    println!("{:?}", part_2());
+}
+
+fn part_2() -> u32 {
+    include_str!("input.txt")
+        .lines()
+        .map(str::parse::<u32>)
+        .map(Result::unwrap)
+        .tuple_windows::<(_, _, _)>()
+        .map(|window| window.0 + window.1 + window.2)
+        .tuple_windows::<(_, _)>()
+        .fold(
+            0,
+            |acc, (first, second): (u32, u32)| {
+                if first < second {
+                    acc + 1
+                } else {
+                    acc
+                }
+            },
+        )
+}
+```
 Where can you find all this information about traits about the standard library and other libraries? This is all readily accessible thanks to Rust's great story around... 
 
 ## Documentation
@@ -304,6 +339,13 @@ Finally, Rust already has some create libraries to use:
 extra iterator methods: itertools
 custom cargo commands: i.e., cargo-edit
 parser generators: peg, nom
+
+## Learning Materials
+
+- The Rust Book
+- The Embedded Discovery Book
+- Programming Rust
+- Rust for Rustaceans + Jon Gjengset's YouTube streams
 
 # Conclusion
 
