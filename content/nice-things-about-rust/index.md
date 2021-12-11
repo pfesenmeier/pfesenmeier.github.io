@@ -1,4 +1,5 @@
 +++
+draft = true
 title = "7 Nice Things About Rust"
 date = 2021-12-11
 
