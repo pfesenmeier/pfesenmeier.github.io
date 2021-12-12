@@ -181,9 +181,7 @@ Speaking of errors, we can avoid a whole class of errors thank to...
 
 The borrow checker is both the most notorious and the the most consequential thing about Rust. 
 
-During compilation the borrow checker makes sure that for every
-point in your code that there is either one mutable reference or multiple
-immutable references to every value in your code. If there are zero references,
+During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references,
 the value is dropped.
 
 This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code.
@@ -206,8 +204,8 @@ If we try this is Rust:
 
 ```rs
 let good_twin =  Twin { is: "good".to_string() };
-let mut evil = good_twin;
-evil.is = "evil".to_string();
+let mut evil_twin = good_twin;
+evil_twin.is = "evil".to_string();
 
 println!("Good twin: {:?}", good_twin);
 ```
@@ -220,7 +218,7 @@ error[E0382]: borrow of moved value: `good_twin`
    |
 9  |   let good_twin =  Twin { is: "good".to_string() };
    |       --------- move occurs because `good_twin` has type `Twin`, which does not implement the `Copy` trait
-10 |   let mut evil = good_twin;
+10 |   let mut evil_twin = good_twin;
    |                  --------- value moved here
 ...
 13 |   println!("Good twin: {:?}", good_twin);
@@ -234,8 +232,8 @@ To acheive the same thing we did in Javascript, we would have to declare
 
 ```rs
 let mut good_twin =  Twin{ is: "good".to_string() };
-let evil = &mut good_twin;
-evil.is = "evil".to_string();
+let evil_twin = &mut good_twin;
+evil_twin.is = "evil".to_string();
 ```
 
 Perhaps a better example of the power of the borrow checker is this classic
@@ -438,7 +436,8 @@ Documentation is not a beloved part about programming. For example, Kent Beck de
 
 Rust changes the balance of that equation.
 
-First, any Rust project can make an HTML site of documentation by running `cargo doc --open`
+First, any Rust project can make an HTML site of documentation by running
+`cargo doc --open`
 
 At a minimum, the documentation will have all the function signatures of the
 public functions, traits, and structs of your modules. It will also put any
@@ -452,5 +451,5 @@ on docs.rs.
 
 ## Conclusion
 
-If a project performance requirements are strict enough to rule out more mainstream languages, and the economic and staffing realities of the client can make room for including a new language, I would not shy allow from Rust in fear of its complications. Despite its steep learning curve (we've just scratched the surface here), underneath is a real gem of a language that is a joy to use.
+If a project performance requirements are strict enough to rule out more mainstream languages, and the economic and staffing realities of the client can make room for including a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a real gem of a language that is a joy to use.
 
