@@ -1,5 +1,4 @@
 +++
-draft = true 
 title = "Six Nice Things About Rust" 
 date = 2021-12-11
 [taxonomies] 
