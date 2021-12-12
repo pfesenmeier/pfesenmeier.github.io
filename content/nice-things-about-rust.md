@@ -4,7 +4,7 @@ date = 2021-12-11
 [taxonomies] 
 tags = ["Rust"] 
 +++ 
-From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and dificult language.  Here is my take: After the initial learning phase, Rust is an ergonomic language and a load of fun to work with, despite its requirements of having no garbage collection and to be free of data races and memory errors. Here are some aspects
+From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: After the initial learning phase, Rust is an ergonomic language and a load of fun to work with, despite its requirements of having no garbage collection and to be free of data races and memory errors. Here are some aspects
 to the language that make Rust nice to work with:
 
 ## 1. No null
@@ -25,7 +25,7 @@ const index = findLetter("Hello world", "w");
 
 // null check
 if (index) {
-  console.log("fonud character at index:", index);
+  console.log("found character at index:", index);
 }
 ```
 
@@ -178,7 +178,7 @@ Speaking of errors, we can avoid a whole class of errors thank to...
 
 ## 4. The Borrow Checker
 
-The borrow checker is both the most notorious and the the most consequential thing about Rust. 
+The borrow checker is both the most notorious and the the most consequential thing about Rust.
 
 During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references,
 the value is dropped.
@@ -226,7 +226,7 @@ error[E0382]: borrow of moved value: `good_twin`
 
 When good_twin gives a reference to evil_twin, good_twin gives up its reference. Good twin is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
-To acheive the same thing we did in Javascript, we would have to declare
+To achieve the same thing we did in Javascript, we would have to declare
 `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
 
 ```rs
@@ -451,4 +451,3 @@ on docs.rs.
 ## Conclusion
 
 If a project performance requirements are strict enough to rule out more mainstream languages, and the economic and staffing realities of the client can make room for including a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a real gem of a language that is a joy to use.
-
