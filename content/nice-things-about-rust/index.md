@@ -10,19 +10,21 @@ to the language that make Rust nice to work with:
 
 ## 1. No null
 
-From this decision flows much of the flavor of Rust. Consider this function
-signature in typescript:
+From this decision flows much of the flavor of Rust. Consider this function in typescript:
 
 ```ts
 // returns index of first match if found, else null
-function findIndex(word: string, sought_char: string) -> number | null
+function findLetter(word: string, letter: string) -> number | null {
+  // ...snip...
+}
 ```
 
-Use looks like:
+Using it would looks like:
 
 ```ts
-const index = findIndex("Hello world", "w");
+const index = findLetter("Hello world", "w");
 
+// null check
 if (index) {
   console.log("fonud character at index:", index);
 }
@@ -31,7 +33,9 @@ if (index) {
 In Rust, such a function would look like this:
 
 ```rs
-fn find_index(word: &str, sought_char: char) -> Option<number>
+fn find_index(word: &str, sought_char: char) -> Option<number> {
+  // ...snip...
+}
 ```
 
 and using it would look like:
@@ -43,7 +47,7 @@ if let Some(index) = find_index("Hello world".to_string(), 'w') {
 ```
 
 Any language that is upfront about when objects are null, such as Typescript in
-strict mode or C# 8 and up, are nice to work with, and mitigate most of the pain
+strict mode or C# 8 and up, are nice to work with, and mitigate the pain
 of having null in a system.
 
 But Rust is one example that shows we can avoid null all together without using
@@ -61,11 +65,10 @@ enum Option<T> {
 }
 ```
 
-The above example `if let` syntax is nice for when you only care about the
-`Some` value. Another is a `match` statement:
+To consume this value, we can deconstruct it, much like can deconstruct in other languages. The above `if let` is one example. Another is a `match` statement:
 
 ```rs
-match find_index("Hello world".to_string(), 'w') {
+match find_letter("Hello world".to_string(), 'w') {
   Some(i) => println!("Found char at index {}:", i),
   None => println!("Did not find char")
 };
@@ -74,19 +77,43 @@ match find_index("Hello world".to_string(), 'w') {
 Notice that for match statements, compilation will fail if you don't handle
 every member of the enum.
 
-Option also has some nice utility functions:
+We can even handle more complicated examples:
+
+```rs
+pub enum QuestionMarkBox {
+   Empty,
+   Money(u32),
+   PowerUp {
+       effect: String,
+       amount: String,
+   }
+}
+
+struct Mario {}
+
+impl Mario {
+    fn open_box(&self, qmbox: QuestionMarkBox) -> String {
+       match qmbox {
+           QuestionMarkBox::Empty =>  "shucks!".to_string(),
+           QuestionMarkBox::Money(amt) => format!("I got ${}!!!", amt),
+           QuestionMarkBox::PowerUp{
+               effect,
+               amount,
+           } => format!("Received {} effect for +{}.", effect, amount)
+       }
+    }
+}
+```
+
+Additionally, types like Option  from the standard library also come with some nice utility functions:
 
 ```rs
 // Return the Some(T) value, else stop and exit the program
-let index = find_index("Hello world".to_string(), 'w').unwrap();
+let index = find_letter("Hello world".to_string(), 'w').unwrap();
 // Return the Some(T) value, else use this value instead
-Option::unwrap_or() 
-// create iterator that returns Some() or None. nice for 
-//method chaining 
-Option::iter
-// And a ton of more obscure ones like 
-Option::map_or
-// applies fn to Some value, or returns provided default value 
+let index = find_letter("Hello world".to_string(), 'w').unwrap_or(42);
+// Returns true if Some, else false
+let found_index = find_letter("Hello world".to_string(), 'w').is_some();
 ```
 
 Rust's liberal use of enums and pattern matching also informs another important
@@ -152,17 +179,15 @@ Speaking of errors, we can avoid a whole class of errors thank to...
 
 ## 4. The Borrow Checker
 
-The borrow checker gets a bad rap sometimes. Yeah it's essential for writing
-concurrent code, but is it all so important in single-threaded code?
+The borrow checker is both the most notorious and the the most consequential thing about Rust. 
 
-To start, it might be nice to have some background of what the borrow checker
-is. Simply put, at compile time, the borrow checker makes sure that for every
+During compilation the borrow checker makes sure that for every
 point in your code that there is either one mutable reference or multiple
-immutable references to every value in your code (if there are zero references,
-the value is automatically dropped).
+immutable references to every value in your code. If there are zero references,
+the value is dropped.
 
-Consider this maybe surprising effect of having two mutable references in
-Typescript:
+This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code.
+Consider this maybe surprising effect of having two mutable references in Typescript:
 
 ```ts
 const goodTwin = { is: "good" };
@@ -175,12 +200,12 @@ console.log("The good twin:", goodTwin);
 
 Even though we declare goodTwin as a constant variable, and do not mutate
 goodTwin directly, goodTwin becomes evil because we gave a reference to
-evilTwin, who mutated the object.
+evilTwin, who mutated the object (should have used Object.freeze).
 
 If we try this is Rust:
 
 ```rs
-let good_twin =  Twin{ is: "good".to_string() };
+let good_twin =  Twin { is: "good".to_string() };
 let mut evil = good_twin;
 evil.is = "evil".to_string();
 
@@ -193,7 +218,7 @@ We get this build error:
 error[E0382]: borrow of moved value: `good_twin`
   --> src/twins.rs:13:31
    |
-9  |   let good_twin =  Twin{ is: "good".to_string() };
+9  |   let good_twin =  Twin { is: "good".to_string() };
    |       --------- move occurs because `good_twin` has type `Twin`, which does not implement the `Copy` trait
 10 |   let mut evil = good_twin;
    |                  --------- value moved here
@@ -202,9 +227,7 @@ error[E0382]: borrow of moved value: `good_twin`
    |                               ^^^^^^^^^ value borrowed here after moved
 ```
 
-In laymen's terms, what happen was that when evil was given a reference to
-good_twin's value, `good_twin` can no longer access that object. `good_twin` is
-no longer valid.
+When good_twin gives a reference to evil_twin, good_twin gives up its reference. Good twin is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
 To acheive the same thing we did in Javascript, we would have to declare
 `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
@@ -228,7 +251,7 @@ for num in numbers:
 print(numbers)
 ```
 
-We're mutating a list while we iterate over it. If you run the sample, the eight
+We're mutating a list while we iterate over it. If you run the sample, the eight, an even number,
 is not removed from the list.
 
 Let's try again in Rust:
@@ -314,12 +337,12 @@ impl Add for JabberWocky {
 
 #[test]
 fn test_jabberwocky_add() {
-  let harry = JabberWocky { face: '👹'.to_string(), body: '🦎'};
-  let frank = JabberWocky { face: '🦊'.to_string(), body: '🐋'};
+  let joe = JabberWocky { face: '👹'.to_string(), body: '🦎'};
+  let bob = JabberWocky { face: '🦊'.to_string(), body: '🐋'};
 
-  let double_jb = harry + frank;
+  let joe_bob = joe + bob;
 
-  assert_eq!(format!("{}", double_jb), "👹🦊-🦎=<");
+  assert_eq!(format!("{}", joe_bob), "👹🦊-🦎=<");
 }
 ```
 
@@ -357,7 +380,7 @@ impl From<(char, char)> for JabberWocky {
 }
 ```
 
-Want to compare your structs? If all struct members implement Partial trait, you can simply derive the PartialEq trait, and compare by comparing all struct members:
+Want to compare your structs? If all struct members implement the PartialEq trait, you can simply derive the PartialEq trait, and compare by comparing all struct members:
 
 ```rs
 #[derive(PartialEq)]
@@ -411,23 +434,23 @@ around...
 
 ## 6. Documentation
 
-It's not the most beloved feature. Documentation actually been smeared by the Xtreme
-Programming Book. But Rust does a lot to remove the traditional pain points.
+Documentation is not a beloved part about programming. For example, Kent Beck dedicates a few paragraphs in his `Extreme Programming Explained` to explain why keeping up documentation is a burden for development teams without much benefit.
 
-First, any Rust project can make documentation by running `cargo doc --open`
+Rust changes the balance of that equation.
 
-At a mininum, the documentation will have all the function signatures of the
-public functions, traits, and structs of your modules. It will also have easy
-links to documntation to all your dependencies. But it will also put any
-doc-comments (comments with `///` or `//!`) in there. You can even put code
-snippets. Those code snippets can even automatically be run when you run
-`cargo test`!
+First, any Rust project can make an HTML site of documentation by running `cargo doc --open`
+
+At a minimum, the documentation will have all the function signatures of the
+public functions, traits, and structs of your modules. It will also put any
+comments with `///` or `//!` in there as well. It will also have
+links to documentation to all your dependencies.
+
+You can even include code snippets to show how to use your library. Those code snippets can even automatically be run as tests with `cargo test`!
 
 All libraries hosted on crates.io automatically have their documentation hosted
 on docs.rs.
 
 ## Conclusion
 
-Rust's learning curve is indeed steep, but rest assured that once summitted,
-there are a ton of slick syntax that you've enjoyed from other languages, plus
-some new ones thrown in too.
+If a project performance requirements are strict enough to rule out more mainstream languages, and the economic and staffing realities of the client can make room for including a new language, I would not shy allow from Rust in fear of its complications. Despite its steep learning curve (we've just scratched the surface here), underneath is a real gem of a language that is a joy to use.
+
