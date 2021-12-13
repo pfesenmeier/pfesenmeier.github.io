@@ -4,8 +4,7 @@ date = 2021-12-11
 [taxonomies] 
 tags = ["Rust"] 
 +++ 
-From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: After the initial learning phase, Rust is an ergonomic language and a load of fun to work with, despite its requirements of having no garbage collection and to be free of data races and memory errors. Here are some aspects
-to the language that make Rust nice to work with:
+From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about programming and encoding them into the type system. Let's start with the most notorious construct in programming, `null`:
 
 ## 1. No null
 
@@ -50,59 +49,7 @@ strict mode or C# 8 and up, are nice to work with, and mitigate the pain
 of having null in a system.
 
 But Rust is one example that shows we can avoid null all together without using
-any ergonomics, even though we're adding more types to the system. This is
-because Rust makes plenty use of:
-
-## 2. Pattern Matching
-
-Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as so:
-
-```rs
-enum Option<T> { 
-    Some(T), 
-    None 
-}
-```
-
-To consume this value, we can deconstruct it, much like can deconstruct in other languages. The above `if let` is one example. Another is a `match` statement:
-
-```rs
-match find_letter("Hello world".to_string(), 'w') {
-  Some(i) => println!("Found char at index {}:", i),
-  None => println!("Did not find char")
-};
-```
-
-Notice that for match statements, compilation will fail if you don't handle
-every member of the enum.
-
-We can even handle more complicated examples:
-
-```rs
-pub enum QuestionMarkBox {
-   Empty,
-   Money(u32),
-   PowerUp {
-       effect: String,
-       amount: String,
-   }
-}
-
-struct Mario {}
-
-impl Mario {
-    fn open_box(&self, qmbox: QuestionMarkBox) -> String {
-       match qmbox {
-           QuestionMarkBox::Empty =>  "shucks!".to_string(),
-           QuestionMarkBox::Money(amt) => format!("I got ${}!!!", amt),
-           QuestionMarkBox::PowerUp{
-               effect,
-               amount,
-           } => format!("Received {} effect for +{}.", effect, amount)
-       }
-    }
-}
-```
+any ergonomics, even though we're adding more types to the system. 
 
 Additionally, types like Option  from the standard library also come with some nice utility functions:
 
@@ -115,10 +62,9 @@ let index = find_letter("Hello world".to_string(), 'w').unwrap_or(42);
 let found_index = find_letter("Hello world".to_string(), 'w').is_some();
 ```
 
-Rust's liberal use of enums and pattern matching also informs another important
-aspect to the language:
+Rust enums show up again in:
 
-## 3. Error Handling
+## 2. Error Handling
 
 Here is a sample of the most common error handling trick, try-catch, in C#
 ([source](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file)):
@@ -174,7 +120,58 @@ fn write_info(info: &Info) -> io::Result<()> {
 }
 ```
 
-Speaking of errors, we can avoid a whole class of errors thank to...
+Since we've seen how enums are used to replace `null` and `try-catch`, it's probably worth to see how powerful they can be when used with:
+
+## 3. Pattern Matching
+
+Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as so:
+
+```rs
+enum Option<T> { 
+    Some(T), 
+    None 
+}
+```
+
+To consume this value, we can deconstruct it, much like can deconstruct in other languages. The above `if let` is one example. Another is a `match` statement:
+
+```rs
+match find_letter("Hello world".to_string(), 'w') {
+  Some(i) => println!("Found char at index {}:", i),
+  None => println!("Did not find char")
+};
+```
+
+Notice that for match statements, compilation will fail if you don't handle
+every member of the enum.
+
+We can even handle more complicated examples:
+
+```rs
+pub enum QuestionMarkBox {
+   Empty,
+   Money(u32),
+   PowerUp {
+       effect: String,
+       amount: String,
+   }
+}
+
+struct Mario {}
+
+impl Mario {
+    fn open_box(&self, qmbox: QuestionMarkBox) -> String {
+       match qmbox {
+           QuestionMarkBox::Empty =>  "shucks!".to_string(),
+           QuestionMarkBox::Money(amt) => format!("I got ${}!!!", amt),
+           QuestionMarkBox::PowerUp{
+               effect,
+               amount,
+           } => format!("Received {} effect for +{}.", effect, amount)
+       }
+    }
+}
+```
 
 ## 4. The Borrow Checker
 
