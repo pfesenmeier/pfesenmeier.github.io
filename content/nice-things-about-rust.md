@@ -450,4 +450,4 @@ on docs.rs.
 
 ## Conclusion
 
-If a project performance requirements are strict enough to rule out more mainstream languages, and the economic and staffing realities of the client can make room for including a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a real gem of a language that is a joy to use.
+If a project performance requirements are strict enough to rule out more mainstream languages, and the economic, staffing, and technical realities of a project can make room for a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when null is returned, when errors are thrown, when is it safe to use code in multi-threaded context, and when memory is or is not allocated, and put in the type system, where the compiler is able to point out errors at build time.
