@@ -290,7 +290,7 @@ types, as bounds on generic parameters, as super and sub traits of other traits,
 and so on. Since Rust does not support inheritance for structs, traits do the work of
 sharing code.
 
-This may be old hat for experienced C# developer, but I'm having a lot of fun
+This may be old hat for a C# developer, but I'm having a lot of fun
 using traits to fit in my custom types into the language with traits:
 
 Want to create a custom display type for your type to show users? There is a
