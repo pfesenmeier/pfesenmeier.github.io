@@ -4,7 +4,7 @@ date = 2021-12-11
 [taxonomies] 
 tags = ["Rust"] 
 +++ 
-From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about programming and encoding them into the type system. Let's start with the most notorious construct in programming, `null`:
+From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about a program and encoding them into the type system, where they can be checked at compile time. Let's start with the most notorious construct in programming, `null`:
 
 ## 1. No null
 
@@ -31,7 +31,7 @@ if (index) {
 In Rust, such a function would look like this:
 
 ```rs
-fn find_index(word: &str, sought_char: char) -> Option<number> {
+fn find_index(word: &str, letter: char) -> Option<number> {
   // ...snip...
 }
 ```
@@ -48,7 +48,7 @@ Any language that is upfront about when objects are null, such as Typescript in
 strict mode or C# 8 and up, are nice to work with, and mitigate the pain
 of having null in a system.
 
-But Rust is one example that shows we can avoid null all together without using
+But Rust is one example that shows we can avoid null all together without losing
 any ergonomics, even though we're adding more types to the system. 
 
 Additionally, types like Option  from the standard library also come with some nice utility functions:
@@ -92,8 +92,7 @@ class ReadFromFile
 In VSCode, if you hover over
 [ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0),
 you get a nice little description of all the Errors that can be raised if you
-call this function. But it raises the question if we did not have that
-documentation, would we know it could throw it all?
+call this function. However, if `ReadAllText` is wrapped in another function, the error information is lost unless the author documents it.
 
 Rust leaves no doubt. Rust models recoverable errors in the
 [Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
@@ -106,7 +105,7 @@ enum Result<T, E> {
 ```
 
 Just like the Option type, callers will have to explicitly handle success and
-failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to exit early with error if result of operation is an error:
+failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
 
 ```rs
 // example from https://doc.rust-lang.org/std/result/index.html
@@ -120,11 +119,11 @@ fn write_info(info: &Info) -> io::Result<()> {
 }
 ```
 
-Since we've seen how enums are used to replace `null` and `try-catch`, it's probably worth to see how powerful they can be when used with:
+Since we've seen how enums are used to replace `null` and `try-catch`, it's worth mentioning how powerful they can be when used with...
 
 ## 3. Pattern Matching
 
-Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as so:
+Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as:
 
 ```rs
 enum Option<T> { 
@@ -221,7 +220,7 @@ error[E0382]: borrow of moved value: `good_twin`
    |                               ^^^^^^^^^ value borrowed here after moved
 ```
 
-When good_twin gives a reference to evil_twin, good_twin gives up its reference. Good twin is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
+When good_twin gives a reference to evil_twin, good_twin gives up its reference. 'good_twin` is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
 To achieve the same thing we did in Javascript, we would have to declare
 `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
@@ -232,7 +231,7 @@ let evil_twin = &mut good_twin;
 evil_twin.is = "evil".to_string();
 ```
 
-Perhaps a better example of the power of the borrow checker is this classic
+Perhaps a better example of the power of the borrow checker is the following classic
 mistake. In Python:
 
 ```py
@@ -442,9 +441,9 @@ links to documentation to all your dependencies.
 
 You can even include code snippets to show how to use your library. Those code snippets can even automatically be run as tests with `cargo test`!
 
-All libraries hosted on crates.io automatically have their documentation hosted
+All libraries hosted on crates.io, Rust's public package registry, automatically have their documentation hosted
 on docs.rs.
 
 ## Conclusion
 
-If a project performance requirements are strict enough to rule out more mainstream languages, and the economic, staffing, and technical realities of a project can make room for a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when null is returned, when errors are thrown, when is it safe to use code in multi-threaded context, and when memory is or is not allocated, and put in the type system, where the compiler is able to point out errors at build time.
+Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when null is returned or when errors are thrown, and putting them in the type system, where the compiler is able to point out errors before the program runs. While not covered here, this guarantee extends to other tricky areas, like multi-threaded code and memory management. On top of this, all this info can easily be shared, thanks to its out-of-the-box documentation tools.
