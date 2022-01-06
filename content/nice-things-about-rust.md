@@ -46,12 +46,9 @@ if let Some(index) = find_index("Hello world".to_string(), 'w') {
 }
 ```
 
-Any language that is upfront about when objects are null, such as Typescript in
-strict mode or C# 8 and up, are nice to work with, and mitigate the pain
-of having null in a system.
+Any language that is upfront about when objects are null, such as Typescript in strict mode or C# 8 and up, are nice to work with, and mitigate the pain of having null in a system.
 
-But Rust is one example that shows we can avoid null all together without losing
-any ergonomics, even though we're adding more types to the system. 
+But Rust is one example that shows we can avoid null all together without losing any ergonomics, even though we're adding more types to the system. 
 
 Additionally, types like Option  from the standard library also come with some nice utility functions:
 
@@ -68,8 +65,7 @@ Rust enums show up again in:
 
 ## 2. Error Handling
 
-Here is a sample of the most common error handling trick, try-catch, in C#
-([source](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file)):
+Here is a sample of the most common error handling trick, try-catch, in C# ([source](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file)):
 
 ```cs
 class ReadFromFile
@@ -91,13 +87,9 @@ class ReadFromFile
 }
 ```
 
-In VSCode, if you hover over
-[ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0),
-you get a nice little description of all the Errors that can be raised if you
-call this function. However, if `ReadAllText` is wrapped in another function, the error information is lost unless the author documents it.
+In VSCode, if you hover over [ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0), you get a nice little description of all the Errors that can be raised if you call this function. However, if `ReadAllText` is wrapped in another function, the error information is lost unless the author documents it.
 
-Rust leaves no doubt. Rust models recoverable errors in the
-[Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
+Rust leaves no doubt. Rust models recoverable errors in the [Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
 
 ```rs
 enum Result<T, E> {
@@ -106,8 +98,7 @@ enum Result<T, E> {
 }
 ```
 
-Just like the Option type, callers will have to explicitly handle success and
-failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
+Just like the Option type, callers will have to explicitly handle success and failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
 
 ```rs
 // example from https://doc.rust-lang.org/std/result/index.html
@@ -143,8 +134,7 @@ match find_letter("Hello world".to_string(), 'w') {
 };
 ```
 
-Notice that for match statements, compilation will fail if you don't handle
-every member of the enum.
+Notice that for match statements, compilation will fail if you don't handle every member of the enum.
 
 We can even handle more complicated examples:
 
@@ -178,11 +168,9 @@ impl Mario {
 
 The borrow checker is both the most notorious and the the most consequential thing about Rust.
 
-During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references,
-the value is dropped.
+During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references, the value is dropped.
 
-This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code.
-Consider this maybe surprising effect of having two mutable references in Typescript:
+This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code. Consider this maybe surprising effect of having two mutable references in Typescript:
 
 ```ts
 const goodTwin = { is: "good" };
@@ -193,9 +181,7 @@ evilTwin.is = "evil";
 console.log("The good twin:", goodTwin);
 ```
 
-Even though we declare goodTwin as a constant variable, and do not mutate
-goodTwin directly, goodTwin becomes evil because we gave a reference to
-evilTwin, who mutated the object (should have used Object.freeze).
+Even though we declare goodTwin as a constant variable, and do not mutate goodTwin directly, goodTwin becomes evil because we gave a reference to evilTwin, who mutated the object (should have used Object.freeze).
 
 If we try this is Rust:
 
@@ -224,8 +210,7 @@ error[E0382]: borrow of moved value: `good_twin`
 
 When good_twin gives a reference to evil_twin, good_twin gives up its reference. 'good_twin` is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
-To achieve the same thing we did in Javascript, we would have to declare
-`good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
+To achieve the same thing we did in Javascript, we would have to declare `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
 
 ```rs
 let mut good_twin =  Twin{ is: "good".to_string() };
@@ -233,8 +218,7 @@ let evil_twin = &mut good_twin;
 evil_twin.is = "evil".to_string();
 ```
 
-Perhaps a better example of the power of the borrow checker is the following classic
-mistake. In Python:
+Perhaps a better example of the power of the borrow checker is the following classic mistake. In Python:
 
 ```py
 numbers = [1, 2, 8, 3, 4, 5]
@@ -246,8 +230,7 @@ for num in numbers:
 print(numbers)
 ```
 
-We're mutating a list while we iterate over it. If you run the sample, the eight, an even number,
-is not removed from the list.
+We're mutating a list while we iterate over it. If you run the sample, the eight, an even number, is not removed from the list.
 
 Let's try again in Rust:
 
@@ -285,17 +268,11 @@ The borrow checker is the novel thing about Rust. The next thing is not as novel
 
 ## 5. Traits (Interfaces)
 
-Traits are interfaces that allow default implementations (think recent C#). They
-are used in all the places you would use interfaces: as parameter and return
-types, as bounds on generic parameters, as super and sub traits of other traits,
-and so on. Since Rust does not support inheritance for structs, traits do the work of
-sharing code.
+Traits are interfaces that allow default implementations (think recent C#). They are used in all the places you would use interfaces: as parameter and return types, as bounds on generic parameters, as super and sub traits of other traits, and so on. Since Rust does not support inheritance for structs, traits do the work of sharing code.
 
-This may be old hat for a C# developer, but I'm having a lot of fun
-using traits to fit in my custom types into the language with traits:
+This may be old hat for a C# developer, but I'm having a lot of fun using traits to fit in my custom types into the language with traits:
 
-Want to create a custom display type for your type to show users? There is a
-trait for that:
+Want to create a custom display type for your type to show users? There is a trait for that:
 
 ```rs
 use std::fmt::{Display, Formatter};
@@ -391,9 +368,7 @@ fn test_equal() {
 }
 ```
 
-Want to add default functionality to your type from a third party crate? Just bring the
-trait in scope. Here is an Advent of Code solution thanks to the
-Itertools::tuple_windows function:
+Want to add default functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the Itertools::tuple_windows function:
 
 ```rs
 use itertools::Itertools;
@@ -423,9 +398,7 @@ fn part_2() -> u32 {
 }
 ```
 
-Where can you find all this information about traits about the standard library
-and other libraries? This is all readily accessible thanks to Rust's great story
-around...
+Where can you find all this information about traits about the standard library and other libraries? This is all readily accessible thanks to Rust's great story around...
 
 ## 6. Documentation
 
@@ -436,15 +409,11 @@ Rust changes the balance of that equation.
 First, any Rust project can make an HTML site of documentation by running
 `cargo doc --open`
 
-At a minimum, the documentation will have all the function signatures of the
-public functions, traits, and structs of your modules. It will also put any
-comments with `///` or `//!` in there as well. It will also have
-links to documentation to all your dependencies.
+At a minimum, the documentation will have all the function signatures of the public functions, traits, and structs of your modules. It will also put any comments with `///` or `//!` in there as well. It will also have links to documentation to all your dependencies.
 
 You can even include code snippets to show how to use your library. Those code snippets can even automatically be run as tests with `cargo test`!
 
-All libraries hosted on crates.io, Rust's public package registry, automatically have their documentation hosted
-on docs.rs.
+All libraries hosted on crates.io, Rust's public package registry, automatically have their documentation hosted on docs.rs.
 
 ## Conclusion
 
