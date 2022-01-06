@@ -406,8 +406,7 @@ Documentation is not a beloved part about programming. For example, Kent Beck de
 
 Rust changes the balance of that equation.
 
-First, any Rust project can make an HTML site of documentation by running
-`cargo doc --open`
+First, any Rust project can make an HTML site of documentation by running `cargo doc --open`.
 
 At a minimum, the documentation will have all the function signatures of the public functions, traits, and structs of your modules. It will also put any comments with `///` or `//!` in there as well. It will also have links to documentation to all your dependencies.
 
