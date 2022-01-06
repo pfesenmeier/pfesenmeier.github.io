@@ -46,11 +46,11 @@ if let Some(index) = find_index("Hello world".to_string(), 'w') {
 }
 ```
 
-Any language that is upfront about when objects are null, such as Typescript in strict mode or C# 8 and up, are nice to work with, and mitigate the pain of having null in a system.
+Any language that is upfront about when objects are `null`, such as Typescript in strict mode or C# 8 and up, are nice to work with, and mitigate the pain of having `null` in a system.
 
-But Rust is one example that shows we can avoid null all together without losing any ergonomics, even though we're adding more types to the system. 
+But Rust is one example that shows we can avoid `null` all together without losing any ergonomics, even though we're adding more types to the system. 
 
-Additionally, types like Option  from the standard library also come with some nice utility functions:
+Additionally, types like `Option` from the standard library also come with some nice utility functions:
 
 ```rs
 // Return the Some(T) value, else stop and exit the program
@@ -98,7 +98,7 @@ enum Result<T, E> {
 }
 ```
 
-Just like the Option type, callers will have to explicitly handle success and failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
+Just like the `Option` type, callers will have to explicitly handle success and failure cases. Conveniently, many of the utility methods that applied to `Option` apply to `Result`. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
 
 ```rs
 // example from https://doc.rust-lang.org/std/result/index.html
@@ -208,7 +208,7 @@ error[E0382]: borrow of moved value: `good_twin`
    |                               ^^^^^^^^^ value borrowed here after moved
 ```
 
-When good_twin gives a reference to evil_twin, good_twin gives up its reference. 'good_twin` is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
+When `good_twin` gives a reference to `evil_twin`, `good_twin` gives up its reference. `good_twin` is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
 To achieve the same thing we did in Javascript, we would have to declare `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
 
@@ -352,7 +352,7 @@ impl From<(char, char)> for JabberWocky {
 }
 ```
 
-Want to compare your structs? If all struct members implement the PartialEq trait, you can simply derive the PartialEq trait, and compare by comparing all struct members:
+Want to compare your structs? If all struct members implement the `PartialEq` trait, you can simply derive the `PartialEq` trait, and compare by comparing all struct members:
 
 ```rs
 #[derive(PartialEq)]
@@ -368,7 +368,7 @@ fn test_equal() {
 }
 ```
 
-Want to add default functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the Itertools::tuple_windows function:
+Want to add default functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the `Itertools::tuple_windows` function:
 
 ```rs
 use itertools::Itertools;
@@ -417,4 +417,4 @@ All libraries hosted on crates.io, Rust's public package registry, automatically
 
 ## Conclusion
 
-Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when null is returned or when errors are thrown, and putting them in the type system, where the compiler is able to point out errors before the program runs. While not covered here, this guarantee extends to other tricky areas, like multi-threaded code and memory management. On top of this, all this info can easily be shared, thanks to its out-of-the-box documentation tools.
+Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when `null` is returned or when errors are thrown, and putting them in the type system, where the compiler is able to point out errors before the program runs. While not covered here, this guarantee extends to other tricky areas, like multi-threaded code and memory management. On top of this, all this info can easily be shared, thanks to its out-of-the-box documentation tools.
