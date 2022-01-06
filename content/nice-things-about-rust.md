@@ -4,6 +4,8 @@ date = 2021-12-11
 [taxonomies] 
 tags = ["Rust"] 
 +++ 
+*This piece was written as part of a presentation for SEP Learns, a training program for new developers at SEP.*
+
 From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about a program and encoding them into the type system, where they can be checked at compile time. Let's start with the most notorious construct in programming, `null`:
 
 ## 1. No null
