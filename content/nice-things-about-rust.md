@@ -10,7 +10,7 @@ From talking to a couple people about Rust, it seems Rust can have a bit of a re
 
 ## 1. No null
 
-From this decision flows much of the flavor of Rust. Consider this function in typescript:
+From this decision flows much of the flavor of Rust. Consider this function in Typescript:
 
 ```ts
 // returns index of first match if found, else null
