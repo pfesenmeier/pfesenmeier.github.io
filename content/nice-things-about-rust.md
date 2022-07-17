@@ -4,11 +4,13 @@ date = 2021-12-11
 [taxonomies] 
 tags = ["Rust"] 
 +++ 
-From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about programming and encoding them into the type system. Let's start with the most notorious construct in programming, `null`:
+*This piece was written as part of a presentation for SEP Learns, a training program for new developers at SEP.*
+
+From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about a program and encoding them into the type system, where they can be checked at compile time. Let's start with the most notorious construct in programming, `null`:
 
 ## 1. No null
 
-From this decision flows much of the flavor of Rust. Consider this function in typescript:
+From this decision flows much of the flavor of Rust. Consider this function in Typescript:
 
 ```ts
 // returns index of first match if found, else null
@@ -31,7 +33,7 @@ if (index) {
 In Rust, such a function would look like this:
 
 ```rs
-fn find_index(word: &str, sought_char: char) -> Option<number> {
+fn find_index(word: &str, letter: char) -> Option<number> {
   // ...snip...
 }
 ```
@@ -44,14 +46,11 @@ if let Some(index) = find_index("Hello world".to_string(), 'w') {
 }
 ```
 
-Any language that is upfront about when objects are null, such as Typescript in
-strict mode or C# 8 and up, are nice to work with, and mitigate the pain
-of having null in a system.
+Any language that is upfront about when objects are `null`, such as Typescript in strict mode or C# 8 and up, are nice to work with, and mitigate the pain of having `null` in a system.
 
-But Rust is one example that shows we can avoid null all together without using
-any ergonomics, even though we're adding more types to the system. 
+But Rust is one example that shows we can avoid `null` all together without losing any ergonomics, even though we're adding more types to the system. 
 
-Additionally, types like Option  from the standard library also come with some nice utility functions:
+Additionally, types like `Option` from the standard library also come with some nice utility functions:
 
 ```rs
 // Return the Some(T) value, else stop and exit the program
@@ -66,8 +65,7 @@ Rust enums show up again in:
 
 ## 2. Error Handling
 
-Here is a sample of the most common error handling trick, try-catch, in C#
-([source](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file)):
+Here is a sample of the most common error handling trick, try-catch, in C# ([source](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file)):
 
 ```cs
 class ReadFromFile
@@ -89,14 +87,9 @@ class ReadFromFile
 }
 ```
 
-In VSCode, if you hover over
-[ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0),
-you get a nice little description of all the Errors that can be raised if you
-call this function. But it raises the question if we did not have that
-documentation, would we know it could throw it all?
+In VSCode, if you hover over [ReadAllText](https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0), you get a nice little description of all the Errors that can be raised if you call this function. However, if `ReadAllText` is wrapped in another function, the error information is lost unless the author documents it.
 
-Rust leaves no doubt. Rust models recoverable errors in the
-[Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
+Rust leaves no doubt. Rust models recoverable errors in the [Result<T,E>](https://doc.rust-lang.org/std/result/index.html) enum:
 
 ```rs
 enum Result<T, E> {
@@ -105,8 +98,7 @@ enum Result<T, E> {
 }
 ```
 
-Just like the Option type, callers will have to explicitly handle success and
-failure cases. Conveniently, many of the utility methods that applied to Option apply to Result. `Result` also has the "?" operator, which tells Rust to exit early with error if result of operation is an error:
+Just like the `Option` type, callers will have to explicitly handle success and failure cases. Conveniently, many of the utility methods that applied to `Option` apply to `Result`. `Result` also has the "?" operator, which tells Rust to stop and return an error if an error is returned:
 
 ```rs
 // example from https://doc.rust-lang.org/std/result/index.html
@@ -120,11 +112,11 @@ fn write_info(info: &Info) -> io::Result<()> {
 }
 ```
 
-Since we've seen how enums are used to replace `null` and `try-catch`, it's probably worth to see how powerful they can be when used with:
+Since we've seen how enums are used to replace `null` and `try-catch`, it's worth mentioning how powerful they can be when used with...
 
 ## 3. Pattern Matching
 
-Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as so:
+Our `find_index` function returns a value of type [Option\<number\>](https://doc.rust-lang.org/std/option/), which is defined as:
 
 ```rs
 enum Option<T> { 
@@ -142,8 +134,7 @@ match find_letter("Hello world".to_string(), 'w') {
 };
 ```
 
-Notice that for match statements, compilation will fail if you don't handle
-every member of the enum.
+Notice that for match statements, compilation will fail if you don't handle every member of the enum.
 
 We can even handle more complicated examples:
 
@@ -177,11 +168,9 @@ impl Mario {
 
 The borrow checker is both the most notorious and the the most consequential thing about Rust.
 
-During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references,
-the value is dropped.
+During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references, the value is dropped.
 
-This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code.
-Consider this maybe surprising effect of having two mutable references in Typescript:
+This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code. Consider this maybe surprising effect of having two mutable references in Typescript:
 
 ```ts
 const goodTwin = { is: "good" };
@@ -192,9 +181,7 @@ evilTwin.is = "evil";
 console.log("The good twin:", goodTwin);
 ```
 
-Even though we declare goodTwin as a constant variable, and do not mutate
-goodTwin directly, goodTwin becomes evil because we gave a reference to
-evilTwin, who mutated the object (should have used Object.freeze).
+Even though we declare goodTwin as a constant variable, and do not mutate goodTwin directly, goodTwin becomes evil because we gave a reference to evilTwin, who mutated the object (should have used Object.freeze).
 
 If we try this is Rust:
 
@@ -221,10 +208,9 @@ error[E0382]: borrow of moved value: `good_twin`
    |                               ^^^^^^^^^ value borrowed here after moved
 ```
 
-When good_twin gives a reference to evil_twin, good_twin gives up its reference. Good twin is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
+When `good_twin` gives a reference to `evil_twin`, `good_twin` gives up its reference. `good_twin` is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.
 
-To achieve the same thing we did in Javascript, we would have to declare
-`good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
+To achieve the same thing we did in Javascript, we would have to declare `good_twin` as mutable, and pass an explicitly mutable reference to `evil_twin`:
 
 ```rs
 let mut good_twin =  Twin{ is: "good".to_string() };
@@ -232,8 +218,7 @@ let evil_twin = &mut good_twin;
 evil_twin.is = "evil".to_string();
 ```
 
-Perhaps a better example of the power of the borrow checker is this classic
-mistake. In Python:
+Perhaps a better example of the power of the borrow checker is the following classic mistake. In Python:
 
 ```py
 numbers = [1, 2, 8, 3, 4, 5]
@@ -245,8 +230,7 @@ for num in numbers:
 print(numbers)
 ```
 
-We're mutating a list while we iterate over it. If you run the sample, the eight, an even number,
-is not removed from the list.
+We're mutating a list while we iterate over it. If you run the sample, the eight, an even number, is not removed from the list.
 
 Let's try again in Rust:
 
@@ -284,17 +268,11 @@ The borrow checker is the novel thing about Rust. The next thing is not as novel
 
 ## 5. Traits (Interfaces)
 
-Traits are interfaces that allow default implementations (think recent C#). They
-are used in all the places you would use interfaces: as parameter and return
-types, as bounds on generic parameters, as super and sub traits of other traits,
-and so on. Since Rust does not support inheritance for structs, traits do the work of
-sharing code.
+Traits are interfaces that allow default implementations (think recent C#). They are used in all the places you would use interfaces: as parameter and return types, as bounds on generic parameters, as super and sub traits of other traits, and so on. Since Rust does not support inheritance for structs, traits do the work of sharing code.
 
-This may be old hat for a C# developer, but I'm having a lot of fun
-using traits to fit in my custom types into the language with traits:
+This may be old hat for a C# developer, but I'm having a lot of fun using traits to fit in my custom types into the language with traits:
 
-Want to create a custom display type for your type to show users? There is a
-trait for that:
+Want to create a custom display type for your type to show users? There is a trait for that:
 
 ```rs
 use std::fmt::{Display, Formatter};
@@ -374,7 +352,7 @@ impl From<(char, char)> for JabberWocky {
 }
 ```
 
-Want to compare your structs? If all struct members implement the PartialEq trait, you can simply derive the PartialEq trait, and compare by comparing all struct members:
+Want to compare your structs? If all struct members implement the `PartialEq` trait, you can simply derive the `PartialEq` trait, and compare by comparing all struct members:
 
 ```rs
 #[derive(PartialEq)]
@@ -390,9 +368,7 @@ fn test_equal() {
 }
 ```
 
-Want to add default functionality to your type from a third party crate? Just bring the
-trait in scope. Here is an Advent of Code solution thanks to the
-Itertools::tuple_windows function:
+Want to add default functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the `Itertools::tuple_windows` function:
 
 ```rs
 use itertools::Itertools;
@@ -422,9 +398,7 @@ fn part_2() -> u32 {
 }
 ```
 
-Where can you find all this information about traits about the standard library
-and other libraries? This is all readily accessible thanks to Rust's great story
-around...
+Where can you find all this information about traits about the standard library and other libraries? This is all readily accessible thanks to Rust's great story around...
 
 ## 6. Documentation
 
@@ -432,19 +406,14 @@ Documentation is not a beloved part about programming. For example, Kent Beck de
 
 Rust changes the balance of that equation.
 
-First, any Rust project can make an HTML site of documentation by running
-`cargo doc --open`
+First, any Rust project can make an HTML site of documentation by running `cargo doc --open`.
 
-At a minimum, the documentation will have all the function signatures of the
-public functions, traits, and structs of your modules. It will also put any
-comments with `///` or `//!` in there as well. It will also have
-links to documentation to all your dependencies.
+At a minimum, the documentation will have all the function signatures of the public functions, traits, and structs of your modules. It will also put any comments with `///` or `//!` in there as well. It will also have links to documentation to all your dependencies.
 
 You can even include code snippets to show how to use your library. Those code snippets can even automatically be run as tests with `cargo test`!
 
-All libraries hosted on crates.io automatically have their documentation hosted
-on docs.rs.
+All libraries hosted on crates.io, Rust's public package registry, automatically have their documentation hosted on docs.rs.
 
 ## Conclusion
 
-If a project performance requirements are strict enough to rule out more mainstream languages, and the economic, staffing, and technical realities of a project can make room for a new language, I would not rule out Rust in fear of its complexity. Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when null is returned, when errors are thrown, when is it safe to use code in multi-threaded context, and when memory is or is not allocated, and put in the type system, where the compiler is able to point out errors at build time.
+Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when `null` is returned or when errors are thrown, and putting them in the type system, where the compiler is able to point out errors before the program runs. While not covered here, this guarantee extends to other tricky areas, like multi-threaded code and memory management. On top of this, all this info can easily be shared, thanks to its out-of-the-box documentation tools.
