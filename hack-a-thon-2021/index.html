@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
+    <title>Hack-a-thon and Embedded Rust</title>
+    <meta name="description" content="Paul Fesenmeier&#x27;s personal blog">
+
+    <link rel="stylesheet" href="https://pfesenmeier.github.io/main.css">
+
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="https://pfesenmeier.github.io/atom.xml">
+    
+
+    
+    
+</head>
+<body>
+    <a class="skip-main" href="#main">Skip to content</a>
+    <div class="container">
+        <header> 
+            <h1 class="site-header">
+                <a href="https:&#x2F;&#x2F;pfesenmeier.github.io">Paul Fesenmeier&#x27;s Blog</a>
+            </h1>
+            <nav>
+                
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;about">About</a>
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;tags">Tags</a>
+                
+                
+            </nav>
+        </header>
+        <main id="main" tabindex="-1">
+            
+
+<article class="post">
+    <header>
+        <h1>Hack-a-thon and Embedded Rust</h1>
+    </header>
+    <div class="content">
+        <p>This spring, A couple colleagues and I began to work through <a href="https://docs.rust-embedded.org/discovery/">The Discovery Book</a>, an introduction to embedded development in Rust. A few months into the book, I attended the SEP summer hackathon to use the lessons and code from the book to create a thermometer.</p>
+<p>Last year, I had built a thermostat to turn a mini-fridge into a fermentation chamber. The thermostat ran on a Raspberry Pi, which connected to a Meros Smart Outlet and a SHT31D temperature and humidity sensor from Adafruit. The software was from the (then Mozilla) Webthings Framework. </p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;e8ac739595c238ad00.jpg" />
+<p>It was fun and it worked pretty well! But I felt provisioning a tiny Linux box for a thermostat seemed a bit overkill. Enter: the STM32FDISCOVERY.</p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;ba9aba4cd7aeda3b00.jpg" />
+<p>My STM32DISCOVERY programs are running on bare metal: no operating system, files, Wifi, etc.. The Discovery authors provided a way to flash the program onto the board, debug the program as it runs on board, and capture log and error messages.</p>
+<p>My goal for the weekend was to hook up and read from the SHT31D sensor. I split up the work in incremental steps.</p>
+<p>First, I wanted to see my board communicate over I2C, the protocol the temperature sensors use. The easiest way was to get the board to read off of its on-board magnetometer. After a few tweaks to the Discovery book's example for my newer revision of the board, I got some readings:</p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;7f3fb2553d63c5d900.jpg" />
+<p>Second step: read from my colleague's Bosh BME280 sensor, which had a more popular open-source package than my SHT31D. There was an issue with the library: the factory function that produced the sensor object consumed a delay object. This meant when I tried to use the delay object to pause between readings, I would get an error like this: </p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;57b34dc9c34365fd00.png" />
+<p>Rust does not allow for multiple mutable references. There was a pull request to solve the issue that had not been merged in a year. Luckily, cargo provides an easy way to bring in the code of this PR straight from Github:</p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;55fdac40601d997000.png" />
+<p>Third step: Use the SHT31D. This was straightforward, save for some minor wire repair.</p>
+<p>Having accomplished my goal on Saturday, I decided to answer a question that seemed solvable with my remaining time: can the board read from both sensors at the same time?</p>
+<p><a href="https://learn.adafruit.com/i2c-addresses#i2c-inter-integrated-circuit-communications-2630755-2">Adafruit explains</a> I2C buses have one master and one to many slaves existing on the same line.  Would the embedded-rust ecosystem allow it? At first glance: no. </p>
+<p>Bringing in both sensors in a program, both required the I2C bus object. Only one could have it, else I get an error. Luckily spotted in a Github thread: the shared-bus crate. This one could manage the references to the bus:</p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;04a832e78b11f6d600.png" />
+<p>In the end, I was able to read from both temperature sensors at the same time, on the same connection. I was pleasantly surprised to see both sensors giving similar readings.</p>
+<p>That was my weekend! Had a blast, looking forward to the next one.</p>
+<p>The code is on <a href="https://github.com/pfesenmeier/discovery">my fork</a> of the Discovery Book, in folders <code>src/9{7-9}-.+</code></p>
+
+    </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-date">16 August 2021</div>
+        
+        <div class="article-taxonomies">
+            
+            
+                <ul class="article-tags">
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/rust/">#Rust</a></li>
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/embedded/">#Embedded</a></li>
+                    
+                </ul>
+            
+        </div>
+    </div>
+
+</article>
+
+
+        </main>
+        <footer>
+            <p>
+                © Paul Fesenmeier&#x27;s Blog 2022<br>
+                Powered by <a target="_blank" href="https://getzola.org/">Zola</a>, Theme <a target="_blank" href="https://github.com/zbrox/anpu-zola-theme">Anpu</a>.
+            </p>
+            <p>
+                
+                
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

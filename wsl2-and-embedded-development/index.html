@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
+    <title>WSL2 and Embedded Rust</title>
+    <meta name="description" content="Paul Fesenmeier&#x27;s personal blog">
+
+    <link rel="stylesheet" href="https://pfesenmeier.github.io/main.css">
+
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="https://pfesenmeier.github.io/atom.xml">
+    
+
+    
+    
+</head>
+<body>
+    <a class="skip-main" href="#main">Skip to content</a>
+    <div class="container">
+        <header> 
+            <h1 class="site-header">
+                <a href="https:&#x2F;&#x2F;pfesenmeier.github.io">Paul Fesenmeier&#x27;s Blog</a>
+            </h1>
+            <nav>
+                
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;about">About</a>
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;tags">Tags</a>
+                
+                
+            </nav>
+        </header>
+        <main id="main" tabindex="-1">
+            
+
+<article class="post">
+    <header>
+        <h1>WSL2 and Embedded Rust</h1>
+    </header>
+    <div class="content">
+        <p>The Windows Subsystem for Linux 2 (WSL2) and embedded development seem incompatible. A microcontroller plugged into a Windows USB port is <a href="https://github.com/microsoft/WSL/issues/5158">only visible to the host Windows machine</a>. However, it is possible to flash and debug a microcontroller right from the Linux terminal.</p>
+<p>The trick is to have the tools that need access to the USB port installed as Windows binaries. Windows binaries invoked from the WSL terminal are <a href="https://docs.microsoft.com/en-us/windows/wsl/filesystems#run-windows-tools-from-linux">run as if</a> in a Windows CMD prompt. Here are two examples:</p>
+<img src="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;processed_images&#x2F;5510e001845a1a4d00.jpg" />
+<small style="display: flex; justify-content: center;">
+The STM32F3DISCOVERY and the ESP32c3
+</small>
+<h2 id="stm32f3discovery">STM32F3DISCOVERY</h2>
+<p>The project outlined in the <a href="https://docs.rust-embedded.org/discovery/">Discovery Book</a> uses gdb to flash and debug the program on the board. Here is how the program is run:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span># in /tmp/
+</span><span>  # Terminal 1: Start a gdb server that connects to board on usb port, listens for gdb client connections:
+</span><span>  openocd.exe -s ./scripts/ -f interface/stlink.cfg -f target/stm32f3x.cfg -c &quot;bindto 0.0.0.0&quot;
+</span><span>
+</span><span>  # Terminal 2: Capture logging from running project:
+</span><span>  itmdump -F -f itm.txt
+</span><span>
+</span><span># in project folder
+</span><span>  # Terminal 3: Build project, send binary to gdb server, and start debug session:
+</span><span>  cargo run
+</span><span>
+</span></code></pre>
+<p><code>openocd.exe</code> runs as if from Windows, and finds the board on the USB port. <code>cargo</code> builds the project, then the gdb client in Linux opens a remote debugging session with the gdb server running on the Windows side. In order for logging to work, the <code>itmdump</code> and <code>openocd.exe</code> commands must be run in same directory. It turns out that this still works even now one is a Windows program!</p>
+<p>The option &quot;bindto 0.0.0.0&quot; tells the gdb server to accept connections from other (virtual) machines. The line &quot;target remote 172.21.159.1:3333&quot; in openocd.gdb tells the Linux gdb client where to find the gdb server running on Windows.</p>
+<p>Important to note that the Windows IP address is not static. My solution is to run a command like this from my .bashrc:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>#!/bin/bash
+</span><span>
+</span><span>project_location=&quot;$HOME/discovery&quot;
+</span><span>
+</span><span># find ip address of windows machine
+</span><span>windows_ip_address=$(grep &quot;nameserver&quot; /etc/resolv.conf | sed &#39;s/nameserver //&#39;)
+</span><span>
+</span><span># update gdb commands with current windows ip address
+</span><span>find &quot;${project_location}/src&quot; -name openocd.gdb -exec sed -Ei &quot;s/^target remote.+\$/target remote ${windows_ip_address}:3333/&quot; {} \;
+</span></code></pre>
+<h2 id="esp32c3">ESP32C3</h2>
+<p>ivmarkov's <a href="https://github.com/ivmarkov/rust-esp32-std-hello">rust-esp32-std-hello</a> has a straighforward setup to develop a part C / part Rust project on the esp32 series of boards. All tools are available from crates.io. All WSL users have to do differently to setup a development environment is cross-compile the flashing and monitoring tools:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>// use latest nightly toolchain
+</span><span>rustup toolchain add nightly
+</span><span>rustup update
+</span><span>rustup defaulty nightly
+</span><span>
+</span><span>// install linker proxy 
+</span><span>cargo install ldproxy
+</span><span>
+</span><span>// download and cross-compile flashing and monitoring tools
+</span><span>sudo apt install mingw-w64
+</span><span>rustup target add x86_64-pc-windows-gnu
+</span><span>cargo install espflash --target x86_64-pc-windows-gnu
+</span><span>cargo install espmonitor --target x86_64-pc-windows-gnu // monitor that is quick to startup
+</span><span>cargo install cargo-pio --target x86_64-pc-windows-gnu // monitor that is slow on startup, but decodes stack traces
+</span></code></pre>
+<p>Then running the program looks like:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>// build and flash
+</span><span>cargo build &amp;&amp; espflash.exe COM6 target/riscv32imc-esp-espidf/debug/rust-esp32-std-hello
+</span><span>// monitor board
+</span><span>cargo-pio.exe espidf monitor COM6 // or espmonitor.exe COM6
+</span></code></pre>
+
+    </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-date">16 October 2021</div>
+        
+        <div class="article-taxonomies">
+            
+            
+                <ul class="article-tags">
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/rust/">#Rust</a></li>
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/embedded/">#Embedded</a></li>
+                    
+                </ul>
+            
+        </div>
+    </div>
+
+</article>
+
+
+        </main>
+        <footer>
+            <p>
+                © Paul Fesenmeier&#x27;s Blog 2022<br>
+                Powered by <a target="_blank" href="https://getzola.org/">Zola</a>, Theme <a target="_blank" href="https://github.com/zbrox/anpu-zola-theme">Anpu</a>.
+            </p>
+            <p>
+                
+                
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

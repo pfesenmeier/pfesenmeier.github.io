@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pfesenmeier.github.io/sitemap.xml

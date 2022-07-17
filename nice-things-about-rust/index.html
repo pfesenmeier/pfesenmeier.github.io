@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+
+    <title>Six Nice Things About Rust</title>
+    <meta name="description" content="Paul Fesenmeier&#x27;s personal blog">
+
+    <link rel="stylesheet" href="https://pfesenmeier.github.io/main.css">
+
+    
+        <link rel="alternate" type="application/atom+xml" title="RSS" href="https://pfesenmeier.github.io/atom.xml">
+    
+
+    
+    
+</head>
+<body>
+    <a class="skip-main" href="#main">Skip to content</a>
+    <div class="container">
+        <header> 
+            <h1 class="site-header">
+                <a href="https:&#x2F;&#x2F;pfesenmeier.github.io">Paul Fesenmeier&#x27;s Blog</a>
+            </h1>
+            <nav>
+                
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;about">About</a>
+                
+                
+                <a  href="https:&#x2F;&#x2F;pfesenmeier.github.io&#x2F;tags">Tags</a>
+                
+                
+            </nav>
+        </header>
+        <main id="main" tabindex="-1">
+            
+
+<article class="post">
+    <header>
+        <h1>Six Nice Things About Rust</h1>
+    </header>
+    <div class="content">
+        <p><em>This piece was written as part of a presentation for SEP Learns, a training program for new developers at SEP.</em></p>
+<p>From talking to a couple people about Rust, it seems Rust can have a bit of a reputation as an obscure and difficult language.  Here is my take: Rust sets developers up for success by putting what are usually hidden assumptions about a program and encoding them into the type system, where they can be checked at compile time. Let's start with the most notorious construct in programming, <code>null</code>:</p>
+<h2 id="1-no-null">1. No null</h2>
+<p>From this decision flows much of the flavor of Rust. Consider this function in Typescript:</p>
+<pre data-lang="ts" style="background-color:#2b303b;color:#c0c5ce;" class="language-ts "><code class="language-ts" data-lang="ts"><span style="color:#65737e;">// returns index of first match if found, else null
+</span><span style="color:#b48ead;">function </span><span style="color:#8fa1b3;">findLetter</span><span>(</span><span style="color:#bf616a;">word</span><span>: string, </span><span style="color:#bf616a;">letter</span><span>: string) -&gt; </span><span style="color:#8fa1b3;">number</span><span> | </span><span style="color:#8fa1b3;">null </span><span>{
+</span><span>  </span><span style="color:#65737e;">// ...snip...
+</span><span>}
+</span></code></pre>
+<p>Using it would looks like:</p>
+<pre data-lang="ts" style="background-color:#2b303b;color:#c0c5ce;" class="language-ts "><code class="language-ts" data-lang="ts"><span style="color:#b48ead;">const </span><span style="color:#bf616a;">index </span><span>= </span><span style="color:#8fa1b3;">findLetter</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">w</span><span>&quot;);
+</span><span>
+</span><span style="color:#65737e;">// null check
+</span><span style="color:#b48ead;">if </span><span>(</span><span style="color:#bf616a;">index</span><span>) {
+</span><span>  </span><span style="color:#ebcb8b;">console</span><span>.</span><span style="color:#96b5b4;">log</span><span>(&quot;</span><span style="color:#a3be8c;">found character at index:</span><span>&quot;, </span><span style="color:#bf616a;">index</span><span>);
+</span><span>}
+</span></code></pre>
+<p>In Rust, such a function would look like this:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">find_index</span><span>(</span><span style="color:#bf616a;">word</span><span>: &amp;</span><span style="color:#b48ead;">str</span><span>, </span><span style="color:#bf616a;">letter</span><span>: </span><span style="color:#b48ead;">char</span><span>) -&gt; Option&lt;number&gt; {
+</span><span>  </span><span style="color:#65737e;">// ...snip...
+</span><span>}
+</span></code></pre>
+<p>and using it would look like:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">if let </span><span>Some(index) = </span><span style="color:#96b5b4;">find_index</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(), &#39;</span><span style="color:#a3be8c;">w</span><span>&#39;) {
+</span><span>  println!(&quot;</span><span style="color:#a3be8c;">Found character at index </span><span style="color:#d08770;">{}</span><span>&quot;, index);
+</span><span>}
+</span></code></pre>
+<p>Any language that is upfront about when objects are <code>null</code>, such as Typescript in strict mode or C# 8 and up, are nice to work with, and mitigate the pain of having <code>null</code> in a system.</p>
+<p>But Rust is one example that shows we can avoid <code>null</code> all together without losing any ergonomics, even though we're adding more types to the system. </p>
+<p>Additionally, types like <code>Option</code> from the standard library also come with some nice utility functions:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#65737e;">// Return the Some(T) value, else stop and exit the program
+</span><span style="color:#b48ead;">let</span><span> index = </span><span style="color:#96b5b4;">find_letter</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(), &#39;</span><span style="color:#a3be8c;">w</span><span>&#39;).</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span style="color:#65737e;">// Return the Some(T) value, else use this value instead
+</span><span style="color:#b48ead;">let</span><span> index = </span><span style="color:#96b5b4;">find_letter</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(), &#39;</span><span style="color:#a3be8c;">w</span><span>&#39;).</span><span style="color:#96b5b4;">unwrap_or</span><span>(</span><span style="color:#d08770;">42</span><span>);
+</span><span style="color:#65737e;">// Returns true if Some, else false
+</span><span style="color:#b48ead;">let</span><span> found_index = </span><span style="color:#96b5b4;">find_letter</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(), &#39;</span><span style="color:#a3be8c;">w</span><span>&#39;).</span><span style="color:#96b5b4;">is_some</span><span>();
+</span></code></pre>
+<p>Rust enums show up again in:</p>
+<h2 id="2-error-handling">2. Error Handling</h2>
+<p>Here is a sample of the most common error handling trick, try-catch, in C# (<a href="https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/file-system/how-to-read-from-a-text-file">source</a>):</p>
+<pre data-lang="cs" style="background-color:#2b303b;color:#c0c5ce;" class="language-cs "><code class="language-cs" data-lang="cs"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">ReadFromFile
+</span><span style="color:#eff1f5;">{
+</span><span style="color:#eff1f5;">    </span><span style="color:#b48ead;">static void </span><span style="color:#8fa1b3;">Main</span><span style="color:#eff1f5;">()
+</span><span style="color:#eff1f5;">    {
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">string </span><span style="color:#bf616a;">text </span><span>= &quot;&quot;</span><span style="color:#eff1f5;">;
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">try
+</span><span style="color:#eff1f5;">        {
+</span><span style="color:#eff1f5;">            </span><span style="color:#bf616a;">text </span><span>= </span><span style="color:#bf616a;">System</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">IO</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">File</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">ReadAllText</span><span style="color:#eff1f5;">(</span><span>@&quot;</span><span style="color:#a3be8c;">./file</span><span>&quot;</span><span style="color:#eff1f5;">);
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">        </span><span style="color:#b48ead;">catch
+</span><span style="color:#eff1f5;">        {
+</span><span style="color:#eff1f5;">            </span><span style="color:#bf616a;">System</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">Console</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">WriteLine</span><span style="color:#eff1f5;">(</span><span>&quot;</span><span style="color:#a3be8c;">Something went wrong reading the file</span><span>&quot;</span><span style="color:#eff1f5;">);
+</span><span style="color:#eff1f5;">        }
+</span><span style="color:#eff1f5;">
+</span><span style="color:#eff1f5;">        </span><span style="color:#bf616a;">System</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">Console</span><span style="color:#eff1f5;">.</span><span style="color:#bf616a;">WriteLine</span><span style="color:#eff1f5;">(</span><span>&quot;</span><span style="color:#a3be8c;">Contents of files.txt = </span><span style="color:#d08770;">{0}</span><span>&quot;</span><span style="color:#eff1f5;">, </span><span style="color:#bf616a;">text</span><span style="color:#eff1f5;">);
+</span><span style="color:#eff1f5;">    }
+</span><span style="color:#eff1f5;">}
+</span></code></pre>
+<p>In VSCode, if you hover over <a href="https://docs.microsoft.com/en-us/dotnet/api/system.io.file.readalltext?view=net-6.0">ReadAllText</a>, you get a nice little description of all the Errors that can be raised if you call this function. However, if <code>ReadAllText</code> is wrapped in another function, the error information is lost unless the author documents it.</p>
+<p>Rust leaves no doubt. Rust models recoverable errors in the <a href="https://doc.rust-lang.org/std/result/index.html">Result&lt;T,E&gt;</a> enum:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">enum </span><span>Result&lt;T, E&gt; {
+</span><span>   Ok(T),
+</span><span>   Err(E),
+</span><span>}
+</span></code></pre>
+<p>Just like the <code>Option</code> type, callers will have to explicitly handle success and failure cases. Conveniently, many of the utility methods that applied to <code>Option</code> apply to <code>Result</code>. <code>Result</code> also has the &quot;?&quot; operator, which tells Rust to stop and return an error if an error is returned:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#65737e;">// example from https://doc.rust-lang.org/std/result/index.html
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">write_info</span><span>(</span><span style="color:#bf616a;">info</span><span>: &amp;Info) -&gt; io::Result&lt;()&gt; {
+</span><span>    </span><span style="color:#b48ead;">let mut</span><span> file = File::create(&quot;</span><span style="color:#a3be8c;">my_best_friends.txt</span><span>&quot;)?;
+</span><span>    </span><span style="color:#65737e;">// Early return on error
+</span><span>    file.</span><span style="color:#96b5b4;">write_all</span><span>(format!(&quot;</span><span style="color:#a3be8c;">name: </span><span style="color:#d08770;">{}</span><span style="color:#96b5b4;">\n</span><span>&quot;, info.name).</span><span style="color:#96b5b4;">as_bytes</span><span>())?;
+</span><span>    file.</span><span style="color:#96b5b4;">write_all</span><span>(format!(&quot;</span><span style="color:#a3be8c;">age: </span><span style="color:#d08770;">{}</span><span style="color:#96b5b4;">\n</span><span>&quot;, info.age).</span><span style="color:#96b5b4;">as_bytes</span><span>())?;
+</span><span>    file.</span><span style="color:#96b5b4;">write_all</span><span>(format!(&quot;</span><span style="color:#a3be8c;">rating: </span><span style="color:#d08770;">{}</span><span style="color:#96b5b4;">\n</span><span>&quot;, info.rating).</span><span style="color:#96b5b4;">as_bytes</span><span>())?;
+</span><span>    Ok(())
+</span><span>}
+</span></code></pre>
+<p>Since we've seen how enums are used to replace <code>null</code> and <code>try-catch</code>, it's worth mentioning how powerful they can be when used with...</p>
+<h2 id="3-pattern-matching">3. Pattern Matching</h2>
+<p>Our <code>find_index</code> function returns a value of type <a href="https://doc.rust-lang.org/std/option/">Option&lt;number&gt;</a>, which is defined as:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">enum </span><span>Option&lt;T&gt; { 
+</span><span>    Some(T), 
+</span><span>    None 
+</span><span>}
+</span></code></pre>
+<p>To consume this value, we can deconstruct it, much like can deconstruct in other languages. The above <code>if let</code> is one example. Another is a <code>match</code> statement:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">match </span><span style="color:#96b5b4;">find_letter</span><span>(&quot;</span><span style="color:#a3be8c;">Hello world</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(), &#39;</span><span style="color:#a3be8c;">w</span><span>&#39;) {
+</span><span>  Some(i) =&gt; println!(&quot;</span><span style="color:#a3be8c;">Found char at index </span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">:</span><span>&quot;, i),
+</span><span>  None =&gt; println!(&quot;</span><span style="color:#a3be8c;">Did not find char</span><span>&quot;)
+</span><span>};
+</span></code></pre>
+<p>Notice that for match statements, compilation will fail if you don't handle every member of the enum.</p>
+<p>We can even handle more complicated examples:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">pub enum </span><span>QuestionMarkBox {
+</span><span>   Empty,
+</span><span>   Money(</span><span style="color:#b48ead;">u32</span><span>),
+</span><span>   PowerUp {
+</span><span>       effect: String,
+</span><span>       amount: String,
+</span><span>   }
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">struct </span><span>Mario {}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Mario {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">open_box</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">qmbox</span><span>: QuestionMarkBox) -&gt; String {
+</span><span>       </span><span style="color:#b48ead;">match</span><span> qmbox {
+</span><span>           QuestionMarkBox::Empty =&gt;  &quot;</span><span style="color:#a3be8c;">shucks!</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>(),
+</span><span>           QuestionMarkBox::Money(amt) =&gt; format!(&quot;</span><span style="color:#a3be8c;">I got $</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">!!!</span><span>&quot;, amt),
+</span><span>           QuestionMarkBox::PowerUp{
+</span><span>               effect,
+</span><span>               amount,
+</span><span>           } =&gt; format!(&quot;</span><span style="color:#a3be8c;">Received </span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;"> effect for +</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">.</span><span>&quot;, effect, amount)
+</span><span>       }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<h2 id="4-the-borrow-checker">4. The Borrow Checker</h2>
+<p>The borrow checker is both the most notorious and the the most consequential thing about Rust.</p>
+<p>During compilation the borrow checker makes sure that every value in your code has either one mutable reference or multiple immutable references. If there are zero references, the value is dropped.</p>
+<p>This is an essential feature for writing correct concurrent code. But it is also helpful in single-threaded code. Consider this maybe surprising effect of having two mutable references in Typescript:</p>
+<pre data-lang="ts" style="background-color:#2b303b;color:#c0c5ce;" class="language-ts "><code class="language-ts" data-lang="ts"><span style="color:#b48ead;">const </span><span style="color:#bf616a;">goodTwin </span><span>= { is: &quot;</span><span style="color:#a3be8c;">good</span><span>&quot; };
+</span><span style="color:#b48ead;">const </span><span style="color:#bf616a;">evilTwin </span><span>= </span><span style="color:#bf616a;">goodTwin</span><span>;
+</span><span style="color:#bf616a;">evilTwin</span><span>.</span><span style="color:#bf616a;">is </span><span>= &quot;</span><span style="color:#a3be8c;">evil</span><span>&quot;;
+</span><span>
+</span><span style="color:#65737e;">// good or evil???
+</span><span style="color:#ebcb8b;">console</span><span>.</span><span style="color:#96b5b4;">log</span><span>(&quot;</span><span style="color:#a3be8c;">The good twin:</span><span>&quot;, </span><span style="color:#bf616a;">goodTwin</span><span>);
+</span></code></pre>
+<p>Even though we declare goodTwin as a constant variable, and do not mutate goodTwin directly, goodTwin becomes evil because we gave a reference to evilTwin, who mutated the object (should have used Object.freeze).</p>
+<p>If we try this is Rust:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">let</span><span> good_twin =  Twin { is: &quot;</span><span style="color:#a3be8c;">good</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>() };
+</span><span style="color:#b48ead;">let mut</span><span> evil_twin = good_twin;
+</span><span>evil_twin.is = &quot;</span><span style="color:#a3be8c;">evil</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>();
+</span><span>
+</span><span>println!(&quot;</span><span style="color:#a3be8c;">Good twin: </span><span style="color:#d08770;">{:?}</span><span>&quot;, good_twin);
+</span></code></pre>
+<p>We get this build error:</p>
+<pre data-lang="md" style="background-color:#2b303b;color:#c0c5ce;" class="language-md "><code class="language-md" data-lang="md"><span>error[E0382]: borrow of moved value: </span><span style="color:#a3be8c;">`good_twin`
+</span><span>  --&gt; src/twins.rs:13:31
+</span><span>   |
+</span><span>9  |   let good_twin =  Twin { is: &quot;good&quot;.to_string() };
+</span><span>   |       --------- move occurs because </span><span style="color:#a3be8c;">`good_twin`</span><span> has type </span><span style="color:#a3be8c;">`Twin`</span><span>, which does not implement the </span><span style="color:#a3be8c;">`Copy`</span><span> trait
+</span><span>10 |   let mut evil_twin = good_twin;
+</span><span>   |                  --------- value moved here
+</span><span>...
+</span><span>13 |   println!(&quot;Good twin: {:?}&quot;, good_twin);
+</span><span>   |                               ^^^^^^^^^ value borrowed here after moved
+</span></code></pre>
+<p>When <code>good_twin</code> gives a reference to <code>evil_twin</code>, <code>good_twin</code> gives up its reference. <code>good_twin</code> is no longer a valid reference, and now we don't have to deal with competing sources of what the value is.</p>
+<p>To achieve the same thing we did in Javascript, we would have to declare <code>good_twin</code> as mutable, and pass an explicitly mutable reference to <code>evil_twin</code>:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">let mut</span><span> good_twin =  Twin{ is: &quot;</span><span style="color:#a3be8c;">good</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>() };
+</span><span style="color:#b48ead;">let</span><span> evil_twin = &amp;</span><span style="color:#b48ead;">mut</span><span> good_twin;
+</span><span>evil_twin.is = &quot;</span><span style="color:#a3be8c;">evil</span><span>&quot;.</span><span style="color:#96b5b4;">to_string</span><span>();
+</span></code></pre>
+<p>Perhaps a better example of the power of the borrow checker is the following classic mistake. In Python:</p>
+<pre data-lang="py" style="background-color:#2b303b;color:#c0c5ce;" class="language-py "><code class="language-py" data-lang="py"><span>numbers = [</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#d08770;">2</span><span>, </span><span style="color:#d08770;">8</span><span>, </span><span style="color:#d08770;">3</span><span>, </span><span style="color:#d08770;">4</span><span>, </span><span style="color:#d08770;">5</span><span>]
+</span><span>
+</span><span style="color:#b48ead;">for </span><span>num </span><span style="color:#b48ead;">in </span><span>numbers:
+</span><span>   </span><span style="color:#b48ead;">if </span><span>num % </span><span style="color:#d08770;">2 </span><span>== </span><span style="color:#d08770;">0</span><span>:
+</span><span>      numbers.</span><span style="color:#bf616a;">remove</span><span>(num)
+</span><span>
+</span><span style="color:#96b5b4;">print</span><span>(numbers)
+</span></code></pre>
+<p>We're mutating a list while we iterate over it. If you run the sample, the eight, an even number, is not removed from the list.</p>
+<p>Let's try again in Rust:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">let mut</span><span> list = vec![</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#d08770;">2</span><span>, </span><span style="color:#d08770;">8</span><span>, </span><span style="color:#d08770;">8</span><span>, </span><span style="color:#d08770;">1</span><span>];
+</span><span>
+</span><span style="color:#b48ead;">for </span><span>(i, num) in list.</span><span style="color:#96b5b4;">iter</span><span>().</span><span style="color:#96b5b4;">enumerate</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">if</span><span> num % </span><span style="color:#d08770;">2 </span><span>== </span><span style="color:#d08770;">0 </span><span>{
+</span><span>        list.</span><span style="color:#96b5b4;">remove</span><span>(i);
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>The compilation fails with this error:</p>
+<pre data-lang="md" style="background-color:#2b303b;color:#c0c5ce;" class="language-md "><code class="language-md" data-lang="md"><span>error[E0502]: cannot borrow </span><span style="color:#a3be8c;">`list`</span><span> as mutable because it is also borrowed as immutable
+</span><span> --&gt; src/abusing_lists.rs:7:13
+</span><span>  |
+</span><span>5 |     for (i, num) in list.iter().enumerate() {
+</span><span>  |                     -----------------------
+</span><span>  |                     |
+</span><span>  |                     immutable borrow occurs here
+</span><span>  |                     immutable borrow later used here
+</span><span>6 |         if num % 2 == 0 {
+</span><span>7 |             list.remove(i);
+</span><span>  |             ^^^^^^^^^^^^^^ mutable borrow occurs here
+</span><span>
+</span><span>F
+</span></code></pre>
+<p>As long as the iterator itself has a reference to the list, no other reference can mutate the list.</p>
+<p>The borrow checker is the novel thing about Rust. The next thing is not as novel, but is just as crucial for feeling at home in Rust:</p>
+<h2 id="5-traits-interfaces">5. Traits (Interfaces)</h2>
+<p>Traits are interfaces that allow default implementations (think recent C#). They are used in all the places you would use interfaces: as parameter and return types, as bounds on generic parameters, as super and sub traits of other traits, and so on. Since Rust does not support inheritance for structs, traits do the work of sharing code.</p>
+<p>This may be old hat for a C# developer, but I'm having a lot of fun using traits to fit in my custom types into the language with traits:</p>
+<p>Want to create a custom display type for your type to show users? There is a trait for that:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">use </span><span>std::fmt::{Display, Formatter};
+</span><span>
+</span><span style="color:#b48ead;">pub struct </span><span>JabberWocky {
+</span><span>  </span><span style="color:#bf616a;">face</span><span>: String,
+</span><span>  </span><span style="color:#bf616a;">body</span><span>: </span><span style="color:#b48ead;">char</span><span>,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>Display </span><span style="color:#b48ead;">for </span><span>JabberWocky {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">fmt</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">f</span><span>: &amp;</span><span style="color:#b48ead;">mut </span><span>Formatter&lt;&#39;_&gt;) -&gt; Result&lt;(), std::fmt::Error&gt; {
+</span><span>        write!(f, &quot;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">-</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">=&lt;</span><span>&quot;, </span><span style="color:#bf616a;">self</span><span>.face, </span><span style="color:#bf616a;">self</span><span>.body)
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">test</span><span>]
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test_jabberwocky_display</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> jb = JabberWocky { face: &#39;</span><span style="color:#a3be8c;">👹</span><span>&#39;.</span><span style="color:#96b5b4;">to_string</span><span>(), body: &#39;</span><span style="color:#a3be8c;">🦎</span><span>&#39;};
+</span><span>    assert_eq!(format!(&quot;</span><span style="color:#d08770;">{}</span><span>&quot;, jb), &quot;</span><span style="color:#a3be8c;">👹-🦎=&lt;</span><span>&quot;);
+</span><span>}
+</span></code></pre>
+<p>Want to override the plus sign for your type? Trait:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">impl </span><span>Add </span><span style="color:#b48ead;">for </span><span>JabberWocky {
+</span><span>    </span><span style="color:#b48ead;">type </span><span>Output = </span><span style="color:#b48ead;">Self</span><span>;
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">add</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">rhs</span><span>: </span><span style="color:#b48ead;">Self</span><span>) -&gt; </span><span style="color:#b48ead;">Self::</span><span>Output {
+</span><span>        </span><span style="color:#b48ead;">let</span><span> heads = </span><span style="color:#bf616a;">self</span><span>.face + &amp;rhs.face;
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{ face: heads, body: </span><span style="color:#bf616a;">self</span><span>.body }
+</span><span>    }
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">test</span><span>]
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test_jabberwocky_add</span><span>() {
+</span><span>  </span><span style="color:#b48ead;">let</span><span> joe = JabberWocky { face: &#39;</span><span style="color:#a3be8c;">👹</span><span>&#39;.</span><span style="color:#96b5b4;">to_string</span><span>(), body: &#39;</span><span style="color:#a3be8c;">🦎</span><span>&#39;};
+</span><span>  </span><span style="color:#b48ead;">let</span><span> bob = JabberWocky { face: &#39;</span><span style="color:#a3be8c;">🦊</span><span>&#39;.</span><span style="color:#96b5b4;">to_string</span><span>(), body: &#39;</span><span style="color:#a3be8c;">🐋</span><span>&#39;};
+</span><span>
+</span><span>  </span><span style="color:#b48ead;">let</span><span> joe_bob = joe + bob;
+</span><span>
+</span><span>  assert_eq!(format!(&quot;</span><span style="color:#d08770;">{}</span><span>&quot;, joe_bob), &quot;</span><span style="color:#a3be8c;">👹🦊-🦎=&lt;</span><span>&quot;);
+</span><span>}
+</span></code></pre>
+<p>Want to create conversions of another type to your type? First try it:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">impl </span><span>From&lt;(</span><span style="color:#b48ead;">char</span><span>, </span><span style="color:#b48ead;">char</span><span>)&gt; </span><span style="color:#b48ead;">for </span><span>JabberWocky { }
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">test</span><span>]
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test_jabberwocky_from_tuple</span><span>() {
+</span><span>    </span><span style="color:#b48ead;">let</span><span> hollis: JabberWocky = (&#39;</span><span style="color:#a3be8c;">👽</span><span>&#39;,&#39;</span><span style="color:#a3be8c;">🦗</span><span>&#39;).</span><span style="color:#96b5b4;">into</span><span>();
+</span><span>    assert_eq!(format!(&quot;</span><span style="color:#d08770;">{}</span><span>&quot;, hollis), &quot;</span><span style="color:#a3be8c;">👽-🦗=&lt;</span><span>&quot;);
+</span><span>}
+</span></code></pre>
+<p>and read the error message:</p>
+<pre data-lang="md" style="background-color:#2b303b;color:#c0c5ce;" class="language-md "><code class="language-md" data-lang="md"><span>error[E0277]: the trait bound </span><span style="color:#a3be8c;">`JabberWocky: From&lt;(char, char)&gt;`</span><span> is not satisfied
+</span><span>  --&gt; src/jabberwocky.rs:27:41
+</span><span>   |
+</span><span>27 |     let hollis: JabberWocky = (&#39;👽&#39;,&#39;🦗&#39;).into();
+</span><span>   |                                           ^^^^ the trait </span><span style="color:#a3be8c;">`From&lt;(char, char)&gt;`</span><span> is not implemented for </span><span style="color:#a3be8c;">`JabberWocky`
+</span><span>   |
+</span><span>   = note: required because of the requirements on the impl of </span><span style="color:#a3be8c;">`Into&lt;JabberWocky&gt;`</span><span> for </span><span style="color:#a3be8c;">`(char, char)`
+</span></code></pre>
+<p>and then do what it says:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">impl </span><span>From&lt;(</span><span style="color:#b48ead;">char</span><span>, </span><span style="color:#b48ead;">char</span><span>)&gt; </span><span style="color:#b48ead;">for </span><span>JabberWocky {
+</span><span>    </span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">from</span><span>(</span><span style="color:#bf616a;">tuple</span><span>: (</span><span style="color:#bf616a;">char</span><span>, </span><span style="color:#bf616a;">char</span><span>)) -&gt; </span><span style="color:#b48ead;">Self </span><span>{ 
+</span><span>        </span><span style="color:#b48ead;">Self </span><span>{ face: tuple.</span><span style="color:#d08770;">0.</span><span style="color:#96b5b4;">to_string</span><span>(), body: tuple.</span><span style="color:#d08770;">1 </span><span>}
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<p>Want to compare your structs? If all struct members implement the <code>PartialEq</code> trait, you can simply derive the <code>PartialEq</code> trait, and compare by comparing all struct members:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span>#[</span><span style="color:#bf616a;">derive</span><span>(PartialEq)]
+</span><span style="color:#b48ead;">pub struct </span><span>JabberWocky {
+</span><span>    </span><span style="color:#bf616a;">face</span><span>: String,
+</span><span>    </span><span style="color:#bf616a;">body</span><span>: </span><span style="color:#b48ead;">char</span><span>,
+</span><span>}
+</span><span>
+</span><span>#[</span><span style="color:#bf616a;">test</span><span>]
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">test_equal</span><span>() {
+</span><span>    assert!(JabberWocky::from((&#39;</span><span style="color:#a3be8c;">🐸</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">🐋</span><span>&#39;)) == JabberWocky::from((&#39;</span><span style="color:#a3be8c;">🐸</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">🐋</span><span>&#39;)));
+</span><span>    assert!(JabberWocky::from((&#39;</span><span style="color:#a3be8c;">🐸</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">🐋</span><span>&#39;)) != JabberWocky::from((&#39;</span><span style="color:#a3be8c;">🧟</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">🫀</span><span>&#39;)));
+</span><span>}
+</span></code></pre>
+<p>Want to add default functionality to your type from a third party crate? Just bring the trait in scope. Here is an Advent of Code solution thanks to the <code>Itertools::tuple_windows</code> function:</p>
+<pre data-lang="rs" style="background-color:#2b303b;color:#c0c5ce;" class="language-rs "><code class="language-rs" data-lang="rs"><span style="color:#b48ead;">use </span><span>itertools::Itertools;
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">main</span><span>() {
+</span><span>    println!(&quot;</span><span style="color:#d08770;">{:?}</span><span>&quot;, </span><span style="color:#96b5b4;">part_2</span><span>());
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">fn </span><span style="color:#8fa1b3;">part_2</span><span>() -&gt; </span><span style="color:#b48ead;">u32 </span><span>{
+</span><span>    include_str!(&quot;</span><span style="color:#a3be8c;">input.txt</span><span>&quot;)
+</span><span>        .</span><span style="color:#96b5b4;">lines</span><span>()
+</span><span>        .</span><span style="color:#96b5b4;">map</span><span>(</span><span style="color:#b48ead;">str</span><span>::parse::&lt;</span><span style="color:#b48ead;">u32</span><span>&gt;)
+</span><span>        .</span><span style="color:#96b5b4;">map</span><span>(Result::unwrap)
+</span><span>        .tuple_windows::&lt;(_, _, _)&gt;()
+</span><span>        .</span><span style="color:#96b5b4;">map</span><span>(|</span><span style="color:#bf616a;">window</span><span>| window.</span><span style="color:#d08770;">0 </span><span>+ window.</span><span style="color:#d08770;">1 </span><span>+ window.</span><span style="color:#d08770;">2</span><span>)
+</span><span>        .tuple_windows::&lt;(_, _)&gt;()
+</span><span>        .</span><span style="color:#96b5b4;">fold</span><span>(
+</span><span>            </span><span style="color:#d08770;">0</span><span>,
+</span><span>            |</span><span style="color:#bf616a;">acc</span><span>, (</span><span style="color:#bf616a;">first</span><span>, </span><span style="color:#bf616a;">second</span><span>): (</span><span style="color:#b48ead;">u32</span><span>, </span><span style="color:#b48ead;">u32</span><span>)| {
+</span><span>                </span><span style="color:#b48ead;">if</span><span> first &lt; second {
+</span><span>                    acc + </span><span style="color:#d08770;">1
+</span><span>                } </span><span style="color:#b48ead;">else </span><span>{
+</span><span>                    acc
+</span><span>                }
+</span><span>            },
+</span><span>        )
+</span><span>}
+</span></code></pre>
+<p>Where can you find all this information about traits about the standard library and other libraries? This is all readily accessible thanks to Rust's great story around...</p>
+<h2 id="6-documentation">6. Documentation</h2>
+<p>Documentation is not a beloved part about programming. For example, Kent Beck dedicates a few paragraphs in his <code>Extreme Programming Explained</code> to explain why keeping up documentation is a burden for development teams without much benefit.</p>
+<p>Rust changes the balance of that equation.</p>
+<p>First, any Rust project can make an HTML site of documentation by running <code>cargo doc --open</code>.</p>
+<p>At a minimum, the documentation will have all the function signatures of the public functions, traits, and structs of your modules. It will also put any comments with <code>///</code> or <code>//!</code> in there as well. It will also have links to documentation to all your dependencies.</p>
+<p>You can even include code snippets to show how to use your library. Those code snippets can even automatically be run as tests with <code>cargo test</code>!</p>
+<p>All libraries hosted on crates.io, Rust's public package registry, automatically have their documentation hosted on docs.rs.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>Despite its steep learning curve (we've just scratched the surface here), underneath is a language that sets developers up for success by taking traditionally hidden assumptions about a system, like when <code>null</code> is returned or when errors are thrown, and putting them in the type system, where the compiler is able to point out errors before the program runs. While not covered here, this guarantee extends to other tricky areas, like multi-threaded code and memory management. On top of this, all this info can easily be shared, thanks to its out-of-the-box documentation tools.</p>
+
+    </div>
+
+    
+    <div class="article-info">
+        
+        <div class="article-date">11 December 2021</div>
+        
+        <div class="article-taxonomies">
+            
+            
+                <ul class="article-tags">
+                    
+                    <li><a href="https://pfesenmeier.github.io/tags/rust/">#Rust</a></li>
+                    
+                </ul>
+            
+        </div>
+    </div>
+
+</article>
+
+
+        </main>
+        <footer>
+            <p>
+                © Paul Fesenmeier&#x27;s Blog 2022<br>
+                Powered by <a target="_blank" href="https://getzola.org/">Zola</a>, Theme <a target="_blank" href="https://github.com/zbrox/anpu-zola-theme">Anpu</a>.
+            </p>
+            <p>
+                
+                
+            </p>
+        </footer>
+    </div>
+</body>
+</html>
